@@ -104,6 +104,10 @@ const cn = {
       Toast: "正在生成截图",
       Modal: "长按或右键保存图片",
     },
+    Artifacts: {
+      Title: "分享页面",
+      Error: "分享失败",
+    },
   },
   Select: {
     Search: "搜索消息",
@@ -389,6 +393,17 @@ const cn = {
           SubTitle: "样例：",
         },
       },
+      Moonshot: {
+        ApiKey: {
+          Title: "接口密钥",
+          SubTitle: "使用自定义月之暗面API Key",
+          Placeholder: "Moonshot API Key",
+        },
+        Endpoint: {
+          Title: "接口地址",
+          SubTitle: "样例：",
+        },
+      },
       Stability: {
         ApiKey: {
           Title: "接口密钥",
@@ -457,6 +472,7 @@ const cn = {
   },
   Plugin: {
     Name: "插件",
+    Artifacts: "Artifacts",
   },
   Discovery: {
     Name: "发现",
