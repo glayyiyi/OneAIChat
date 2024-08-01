@@ -115,7 +115,7 @@ class _MyAppState extends State<MyApp> {
       },
       child: Scaffold(
           appBar: AppBar(
-            title: Text('BRClient'),
+            title: Text('OneAI Chat'),
             toolbarHeight: 0,
             systemOverlayStyle: const SystemUiOverlayStyle(
                 systemNavigationBarColor: Color(0xffe7f8ff)),
@@ -143,7 +143,7 @@ class _MyAppState extends State<MyApp> {
                     String? outputFile = await FilePicker.platform.saveFile(
                         dialogTitle: 'Please select an output file:',
                         fileName:
-                            'brclient_${DateTime.now().microsecondsSinceEpoch}.txt',
+                            'oneai_chat_${DateTime.now().microsecondsSinceEpoch}.txt',
                         bytes: url.url.data!.contentAsBytes());
                     print("outputFile: $outputFile");
                   }
@@ -209,7 +209,7 @@ Future<void> _saveBase64ImageToLocal(String base64Image) async {
   final bytes = base64.decode(base64Image.split(',').last);
   String? outputFile = await FilePicker.platform.saveFile(
       dialogTitle: 'Please select an output file:',
-      fileName: 'brclient_${DateTime.now().microsecondsSinceEpoch}.png',
+      fileName: 'oneai_chat_${DateTime.now().microsecondsSinceEpoch}.png',
       bytes: bytes);
   print("Image saved to: $outputFile");
 }
