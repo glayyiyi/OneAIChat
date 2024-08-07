@@ -35,13 +35,23 @@ Future main() async {
   var webDir = Directory(path.join(appDocDir.path, "out"));
   print("IndexHtml Path=========================:" +
       path.join(webDir.path, 'index.html'));
-  if (!webDir.existsSync()) {
-    print("unzip...");
-    var data = await rootBundle.load("assets/out.zip");
-    final archive =
-        ZipDecoder().decodeBuffer(InputStream(data.buffer.asUint8List()));
-    await extractArchiveToDisk(archive, appDocDir.path);
-  }
+  // if (!webDir.existsSync()) {
+  //   print("unzip...");
+  //   var data = await rootBundle.load("assets/out.zip");
+  //   final archive =
+  //       ZipDecoder().decodeBuffer(InputStream(data.buffer.asUint8List()));
+  //   await extractArchiveToDisk(archive, appDocDir.path);
+  // }
+
+final zipFile = await rootBundle.load('assets/out.zip');
+final archive = ZipDecoder().decodeBuffer(InputStream(zipFile.buffer.asUint8List()));
+
+if (webDir.existsSync()) {
+  webDir.deleteSync(recursive: true);
+}
+
+await extractArchiveToDisk(archive, appDocDir.path);
+
 
   var pipe = const Pipeline();
   if (kDebugMode) {
