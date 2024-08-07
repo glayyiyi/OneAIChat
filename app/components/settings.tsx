@@ -54,6 +54,7 @@ import {
   Anthropic,
   Azure,
   Baidu,
+  Tencent,
   ByteDance,
   Alibaba,
   Moonshot,
@@ -67,6 +68,7 @@ import {
   SlotID,
   UPDATE_URL,
   Stability,
+  Iflytek,
 } from "../constant";
 import { Prompt, SearchService, usePromptStore } from "../store/prompt";
 import { ErrorBoundary } from "./error";
@@ -965,6 +967,57 @@ export function Settings() {
     </>
   );
 
+  const tencentConfigComponent = accessStore.provider ===
+    ServiceProvider.Tencent && (
+    <>
+      <ListItem
+        title={Locale.Settings.Access.Tencent.Endpoint.Title}
+        subTitle={Locale.Settings.Access.Tencent.Endpoint.SubTitle}
+      >
+        <input
+          type="text"
+          value={accessStore.tencentUrl}
+          placeholder={Tencent.ExampleEndpoint}
+          onChange={(e) =>
+            accessStore.update(
+              (access) => (access.tencentUrl = e.currentTarget.value),
+            )
+          }
+        ></input>
+      </ListItem>
+      <ListItem
+        title={Locale.Settings.Access.Tencent.ApiKey.Title}
+        subTitle={Locale.Settings.Access.Tencent.ApiKey.SubTitle}
+      >
+        <PasswordInput
+          value={accessStore.tencentSecretId}
+          type="text"
+          placeholder={Locale.Settings.Access.Tencent.ApiKey.Placeholder}
+          onChange={(e) => {
+            accessStore.update(
+              (access) => (access.tencentSecretId = e.currentTarget.value),
+            );
+          }}
+        />
+      </ListItem>
+      <ListItem
+        title={Locale.Settings.Access.Tencent.SecretKey.Title}
+        subTitle={Locale.Settings.Access.Tencent.SecretKey.SubTitle}
+      >
+        <PasswordInput
+          value={accessStore.tencentSecretKey}
+          type="text"
+          placeholder={Locale.Settings.Access.Tencent.SecretKey.Placeholder}
+          onChange={(e) => {
+            accessStore.update(
+              (access) => (access.tencentSecretKey = e.currentTarget.value),
+            );
+          }}
+        />
+      </ListItem>
+    </>
+  );
+
   const byteDanceConfigComponent = accessStore.provider ===
     ServiceProvider.ByteDance && (
     <>
@@ -1120,6 +1173,60 @@ export function Settings() {
       </ListItem>
     </>
   );
+  const lflytekConfigComponent = accessStore.provider ===
+    ServiceProvider.Iflytek && (
+    <>
+      <ListItem
+        title={Locale.Settings.Access.Iflytek.Endpoint.Title}
+        subTitle={
+          Locale.Settings.Access.Iflytek.Endpoint.SubTitle +
+          Iflytek.ExampleEndpoint
+        }
+      >
+        <input
+          type="text"
+          value={accessStore.iflytekUrl}
+          placeholder={Iflytek.ExampleEndpoint}
+          onChange={(e) =>
+            accessStore.update(
+              (access) => (access.iflytekUrl = e.currentTarget.value),
+            )
+          }
+        ></input>
+      </ListItem>
+      <ListItem
+        title={Locale.Settings.Access.Iflytek.ApiKey.Title}
+        subTitle={Locale.Settings.Access.Iflytek.ApiKey.SubTitle}
+      >
+        <PasswordInput
+          value={accessStore.iflytekApiKey}
+          type="text"
+          placeholder={Locale.Settings.Access.Iflytek.ApiKey.Placeholder}
+          onChange={(e) => {
+            accessStore.update(
+              (access) => (access.iflytekApiKey = e.currentTarget.value),
+            );
+          }}
+        />
+      </ListItem>
+
+      <ListItem
+        title={Locale.Settings.Access.Iflytek.ApiSecret.Title}
+        subTitle={Locale.Settings.Access.Iflytek.ApiSecret.SubTitle}
+      >
+        <PasswordInput
+          value={accessStore.iflytekApiSecret}
+          type="text"
+          placeholder={Locale.Settings.Access.Iflytek.ApiSecret.Placeholder}
+          onChange={(e) => {
+            accessStore.update(
+              (access) => (access.iflytekApiSecret = e.currentTarget.value),
+            );
+          }}
+        />
+      </ListItem>
+    </>
+  );
 
   return (
     <ErrorBoundary>
@@ -1265,6 +1372,22 @@ export function Settings() {
           </ListItem>
 
           <ListItem
+            title={Locale.Settings.FontFamily.Title}
+            subTitle={Locale.Settings.FontFamily.SubTitle}
+          >
+            <input
+              type="text"
+              value={config.fontFamily}
+              placeholder={Locale.Settings.FontFamily.Placeholder}
+              onChange={(e) =>
+                updateConfig(
+                  (config) => (config.fontFamily = e.currentTarget.value),
+                )
+              }
+            ></input>
+          </ListItem>
+
+          <ListItem
             title={Locale.Settings.AutoGenerateTitle.Title}
             subTitle={Locale.Settings.AutoGenerateTitle.SubTitle}
           >
@@ -1404,8 +1527,10 @@ export function Settings() {
                   {baiduConfigComponent}
                   {byteDanceConfigComponent}
                   {alibabaConfigComponent}
+                  {tencentConfigComponent}
                   {moonshotConfigComponent}
                   {stabilityConfigComponent}
+                  {lflytekConfigComponent}
                 </>
               )}
             </>
