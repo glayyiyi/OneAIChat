@@ -1,0 +1,463 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1AD9A643374B0BD77190EDDB /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7D51B71AA087AF759AB77D9B /* main.mm */; };
+		1C0722332A5F7001E8F70111 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DA8BB078FF99F85E59AF9B9 /* Metal.framework */; };
+		25DAF3C7B0BF17F5C84B8A82 /* libapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 90F473A98F36B48FC140BEAC /* libapp.a */; };
+		550C523BDB9F72C09FEF4D4B /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 011E4EE99A1FB44D2125D233 /* Security.framework */; };
+		5F266AE7401C6B3DD5CC1A4B /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 981EB7A27FCD05CBB1A3ED19 /* QuartzCore.framework */; };
+		79555320E2A791B7769973F5 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B403CB37D98AD788D0590FC /* CoreGraphics.framework */; };
+		ABBAB0D28E22199812099062 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D68B9FA22F7DBB02493E0130 /* LaunchScreen.storyboard */; };
+		B1FA42F99D20BF0F1DBD2CD7 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B6F45C6BF1BB9B4EC7FE8DC8 /* MetalKit.framework */; };
+		B2AE28706AF7A0F687395145 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 44225092AF7F807C3F33F6F4 /* UIKit.framework */; };
+		B3EA0AA550326E887B34BC38 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EDA28E29891045CC5E489589 /* Assets.xcassets */; };
+		EE5A7744095C83FB073DEBE0 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 0D5406F1BC5C4FA8DFB190B5 /* assets */; };
+		F9FDE21A506CABB1B88BA1BC /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9CD71B8106FF41272799EFB3 /* WebKit.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		011E4EE99A1FB44D2125D233 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		0A6DBB1618AB97AD632465CC /* oneai-chat-app_iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "oneai-chat-app_iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D5406F1BC5C4FA8DFB190B5 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = assets; sourceTree = SOURCE_ROOT; };
+		2B403CB37D98AD788D0590FC /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		3DA8BB078FF99F85E59AF9B9 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		44225092AF7F807C3F33F6F4 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		4DFE58A81BF9BCBE49FD74D4 /* main.rs */ = {isa = PBXFileReference; path = main.rs; sourceTree = "<group>"; };
+		7D51B71AA087AF759AB77D9B /* main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
+		90F473A98F36B48FC140BEAC /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
+		981EB7A27FCD05CBB1A3ED19 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		9CD71B8106FF41272799EFB3 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		AD1B1E1C185A1625BE2ADB2E /* lib.rs */ = {isa = PBXFileReference; path = lib.rs; sourceTree = "<group>"; };
+		B4E3B91751623AF2B9593DC6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		B6F45C6BF1BB9B4EC7FE8DC8 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		C035D61C4CDE06694BD3C475 /* oneai-chat-app_iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "oneai-chat-app_iOS.entitlements"; sourceTree = "<group>"; };
+		C32EB575A0605ADE3E5B85E5 /* bindings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bindings.h; sourceTree = "<group>"; };
+		D68B9FA22F7DBB02493E0130 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		EDA28E29891045CC5E489589 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C14EFD4AC1AB43EFE4755BD2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				25DAF3C7B0BF17F5C84B8A82 /* libapp.a in Frameworks */,
+				79555320E2A791B7769973F5 /* CoreGraphics.framework in Frameworks */,
+				1C0722332A5F7001E8F70111 /* Metal.framework in Frameworks */,
+				B1FA42F99D20BF0F1DBD2CD7 /* MetalKit.framework in Frameworks */,
+				5F266AE7401C6B3DD5CC1A4B /* QuartzCore.framework in Frameworks */,
+				550C523BDB9F72C09FEF4D4B /* Security.framework in Frameworks */,
+				B2AE28706AF7A0F687395145 /* UIKit.framework in Frameworks */,
+				F9FDE21A506CABB1B88BA1BC /* WebKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		11F57C6E4312AC9DB2D5585D /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				F526F197D2443B5763D13CE2 /* oneai-chat-app */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		57705BBE2EDADEA7738BAF93 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				2B403CB37D98AD788D0590FC /* CoreGraphics.framework */,
+				90F473A98F36B48FC140BEAC /* libapp.a */,
+				3DA8BB078FF99F85E59AF9B9 /* Metal.framework */,
+				B6F45C6BF1BB9B4EC7FE8DC8 /* MetalKit.framework */,
+				981EB7A27FCD05CBB1A3ED19 /* QuartzCore.framework */,
+				011E4EE99A1FB44D2125D233 /* Security.framework */,
+				44225092AF7F807C3F33F6F4 /* UIKit.framework */,
+				9CD71B8106FF41272799EFB3 /* WebKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		67D02CD1C25297FF46841DF9 /* bindings */ = {
+			isa = PBXGroup;
+			children = (
+				C32EB575A0605ADE3E5B85E5 /* bindings.h */,
+			);
+			path = bindings;
+			sourceTree = "<group>";
+		};
+		74D0ADB095D8F35A64F7AC38 /* oneai-chat-app_iOS */ = {
+			isa = PBXGroup;
+			children = (
+				B4E3B91751623AF2B9593DC6 /* Info.plist */,
+				C035D61C4CDE06694BD3C475 /* oneai-chat-app_iOS.entitlements */,
+			);
+			path = "oneai-chat-app_iOS";
+			sourceTree = "<group>";
+		};
+		8FB6F6C7B827372C47B20DD3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0A6DBB1618AB97AD632465CC /* oneai-chat-app_iOS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A84DCC3BEEB8841F2C761376 /* Externals */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Externals;
+			sourceTree = "<group>";
+		};
+		A98EAA5C556A496A432AF0E0 = {
+			isa = PBXGroup;
+			children = (
+				0D5406F1BC5C4FA8DFB190B5 /* assets */,
+				EDA28E29891045CC5E489589 /* Assets.xcassets */,
+				D68B9FA22F7DBB02493E0130 /* LaunchScreen.storyboard */,
+				A84DCC3BEEB8841F2C761376 /* Externals */,
+				74D0ADB095D8F35A64F7AC38 /* oneai-chat-app_iOS */,
+				11F57C6E4312AC9DB2D5585D /* Sources */,
+				B05EC960CB698564474D6569 /* src */,
+				57705BBE2EDADEA7738BAF93 /* Frameworks */,
+				8FB6F6C7B827372C47B20DD3 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B05EC960CB698564474D6569 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				AD1B1E1C185A1625BE2ADB2E /* lib.rs */,
+				4DFE58A81BF9BCBE49FD74D4 /* main.rs */,
+			);
+			name = src;
+			path = ../../src;
+			sourceTree = "<group>";
+		};
+		F526F197D2443B5763D13CE2 /* oneai-chat-app */ = {
+			isa = PBXGroup;
+			children = (
+				7D51B71AA087AF759AB77D9B /* main.mm */,
+				67D02CD1C25297FF46841DF9 /* bindings */,
+			);
+			path = "oneai-chat-app";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		5559E6D97900385C13CE22C5 /* oneai-chat-app_iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6CF8AA94258C3F2311EEFF94 /* Build configuration list for PBXNativeTarget "oneai-chat-app_iOS" */;
+			buildPhases = (
+				E75DB067DD729D1AAFB481C8 /* Build Rust Code */,
+				D510C1051D8D0171C153114B /* Sources */,
+				9B7D5E0791619162FE158B7B /* Resources */,
+				C14EFD4AC1AB43EFE4755BD2 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "oneai-chat-app_iOS";
+			productName = "oneai-chat-app_iOS";
+			productReference = 0A6DBB1618AB97AD632465CC /* oneai-chat-app_iOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		76DC42D388EE2A32D3B80F93 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 269C5134B1B184E6DB36681A /* Build configuration list for PBXProject "oneai-chat-app" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = A98EAA5C556A496A432AF0E0;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				5559E6D97900385C13CE22C5 /* oneai-chat-app_iOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		9B7D5E0791619162FE158B7B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B3EA0AA550326E887B34BC38 /* Assets.xcassets in Resources */,
+				ABBAB0D28E22199812099062 /* LaunchScreen.storyboard in Resources */,
+				EE5A7744095C83FB073DEBE0 /* assets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		E75DB067DD729D1AAFB481C8 /* Build Rust Code */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build Rust Code";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/Externals/x86_64/${CONFIGURATION}/libapp.a",
+				"$(SRCROOT)/Externals/arm64/${CONFIGURATION}/libapp.a",
+				"$(SRCROOT)/Externals/arm64-sim/${CONFIGURATION}/libapp.a",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "yarn tauri ios xcode-script -v --platform ${PLATFORM_DISPLAY_NAME:?} --sdk-root ${SDKROOT:?} --framework-search-paths \"${FRAMEWORK_SEARCH_PATHS:?}\" --header-search-paths \"${HEADER_SEARCH_PATHS:?}\" --gcc-preprocessor-definitions \"${GCC_PREPROCESSOR_DEFINITIONS:-}\" --configuration ${CONFIGURATION:?} ${FORCE_COLOR} ${ARCHS:?}";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D510C1051D8D0171C153114B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AD9A643374B0BD77190EDDB /* main.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		43EA2616AEF16680ABD546D5 /* debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = debug;
+		};
+		48B3C19F425EC5F30CB487E0 /* debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ARCHS = (
+					arm64,
+					"arm64-sim",
+				);
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "oneai-chat-app_iOS/oneai-chat-app_iOS.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = "arm64-sim x86_64";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".\"",
+				);
+				INFOPLIST_FILE = "oneai-chat-app_iOS/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"LIBRARY_SEARCH_PATHS[arch=arm64-sim]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64-sim/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = host.oneai.chat-app;
+				PRODUCT_NAME = "oneai-chat-app";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64  arm64-sim";
+			};
+			name = debug;
+		};
+		714F565F78A535A2951FC1D3 /* release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = release;
+		};
+		DFFF44B0F076BFDE27A3CF0B /* release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ARCHS = (
+					arm64,
+					"arm64-sim",
+				);
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "oneai-chat-app_iOS/oneai-chat-app_iOS.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = "arm64-sim x86_64";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".\"",
+				);
+				INFOPLIST_FILE = "oneai-chat-app_iOS/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"LIBRARY_SEARCH_PATHS[arch=arm64-sim]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64-sim/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = host.oneai.chat-app;
+				PRODUCT_NAME = "oneai-chat-app";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64  arm64-sim";
+			};
+			name = release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		269C5134B1B184E6DB36681A /* Build configuration list for PBXProject "oneai-chat-app" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				43EA2616AEF16680ABD546D5 /* debug */,
+				714F565F78A535A2951FC1D3 /* release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = debug;
+		};
+		6CF8AA94258C3F2311EEFF94 /* Build configuration list for PBXNativeTarget "oneai-chat-app_iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				48B3C19F425EC5F30CB487E0 /* debug */,
+				DFFF44B0F076BFDE27A3CF0B /* release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 76DC42D388EE2A32D3B80F93 /* Project object */;
+}
