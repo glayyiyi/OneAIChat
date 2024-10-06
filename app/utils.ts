@@ -3,7 +3,7 @@ import { showToast } from "./components/ui-lib";
 import Locale from "./locales";
 import { RequestMessage } from "./client/api";
 import { ServiceProvider, REQUEST_TIMEOUT_MS } from "./constant";
-import { fetch as tauriFetch, ResponseType } from "@tauri-apps/api/http";
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 
 export function trimTopic(topic: string) {
   // Fix an issue where double quotes still show in the Indonesian language
@@ -302,8 +302,7 @@ export function fetch(
           payload,
         } as any),
       timeout: ((options?.timeout as number) || REQUEST_TIMEOUT_MS) / 1000,
-      responseType:
-        options?.responseType == "text" ? ResponseType.Text : ResponseType.JSON,
+      responseType: options?.responseType == "text" ? "Text" : "JSON",
     } as any);
   }
   return window.fetch(url, options);

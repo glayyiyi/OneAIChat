@@ -1,5 +1,5 @@
 {
-  "name": "nextchat",
+  "name": "oneai-chat-app",
   "private": false,
   "license": "mit",
   "scripts": {
@@ -12,19 +12,28 @@
     "export": "yarn mask && cross-env BUILD_MODE=export BUILD_APP=1 next build",
     "export:dev": "concurrently -r \"yarn mask:watch\"  \"cross-env BUILD_MODE=export BUILD_APP=1 next dev\"",
     "app:dev": "concurrently -r \"yarn mask:watch\" \"yarn tauri dev\"",
+    "app-ios:dev": "concurrently -r \"yarn mask:watch\" \"yarn tauri ios dev\"",
+    "app-android:dev": "concurrently -r \"yarn mask:watch\" \"yarn tauri android dev\"",
     "app:build": "yarn mask && yarn tauri build",
-    "app_android:build":"yarn export && zip -r ./flutter_app/assets/out.zip out && cd ./flutter_app && flutter build apk --release",
-    "app_ios:build":"yarn export && zip -r ./flutter_app/assets/out.zip out && cd ./flutter_app && flutter build ios --release",
-    "app_ios:dev":"yarn export && zip -r ./flutter_app/assets/out.zip out && open -a Simulator && cd ./flutter_app && flutter run",
+    "app-ios:build": "yarn mask && yarn tauri ios build",
+    "app-android:build": "yarn mask && yarn tauri android build",
     "prompts": "node ./scripts/fetch-prompts.mjs",
     "prepare": "husky install",
-    "proxy-dev": "sh ./scripts/init-proxy.sh && proxychains -f ./scripts/proxychains.conf yarn dev"
+    "proxy-dev": "sh ./scripts/init-proxy.sh && proxychains -f ./scripts/proxychains.conf yarn dev",
+    "tauri": "tauri"
   },
   "dependencies": {
     "@fortaine/fetch-event-source": "^3.0.6",
     "@hello-pangea/dnd": "^16.5.0",
     "@next/third-parties": "^14.1.0",
     "@svgr/webpack": "^6.5.1",
+    "@tauri-apps/plugin-clipboard-manager": "^2.0.0",
+    "@tauri-apps/plugin-dialog": "^2.0.0",
+    "@tauri-apps/plugin-fs": "^2.0.0",
+    "@tauri-apps/plugin-http": "^2.0.0",
+    "@tauri-apps/plugin-notification": "^2.0.0",
+    "@tauri-apps/plugin-shell": "^2.0.0",
+    "@tauri-apps/plugin-updater": "^2.0.0",
     "@vercel/analytics": "^0.1.11",
     "@vercel/speed-insights": "^1.0.2",
     "axios": "^1.7.5",
@@ -34,8 +43,8 @@
     "html-to-image": "^1.11.11",
     "idb-keyval": "^6.2.1",
     "lodash-es": "^4.17.21",
-    "mermaid": "^10.6.1",
     "markdown-to-txt": "^2.0.1",
+    "mermaid": "^10.6.1",
     "nanoid": "^5.0.3",
     "next": "^14.1.1",
     "node-fetch": "^3.3.1",
@@ -56,7 +65,7 @@
   },
   "devDependencies": {
     "@tauri-apps/api": "^1.6.0",
-    "@tauri-apps/cli": "1.5.11",
+    "@tauri-apps/cli": "^2.0.1",
     "@types/js-yaml": "4.0.9",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^20.11.30",
@@ -76,11 +85,12 @@
     "prettier": "^3.0.2",
     "tsx": "^4.16.0",
     "typescript": "5.2.2",
+    "vite": "^5.3.1",
     "watch": "^1.0.2",
     "webpack": "^5.88.1"
   },
   "resolutions": {
     "lint-staged/yaml": "^2.2.2"
   },
-  "packageManager": "yarn@1.22.19"
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
