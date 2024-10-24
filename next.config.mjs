@@ -28,7 +28,7 @@ const nextConfig = {
   },
   output: mode,
   distDir: 'dist',
-  assetPrefix: './', 
+  // assetPrefix: './', 
   images: {
     unoptimized: mode === "export",
   },
