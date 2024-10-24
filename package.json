@@ -1,5 +1,5 @@
 {
-  "name": "nextchat",
+  "name": "oneai-chat",
   "private": false,
   "license": "mit",
   "scripts": {
@@ -10,9 +10,13 @@
     "start": "next start",
     "lint": "next lint",
     "export": "yarn mask && cross-env BUILD_MODE=export BUILD_APP=1 next build",
-    "export:dev": "concurrently -r \"yarn mask:watch\"  \"cross-env BUILD_MODE=export BUILD_APP=1 next dev\"",
+    "export:dev": "concurrently -r \"yarn mask:watch\" \"cross-env BUILD_MODE=standalone BUILD_APP=1 next dev\"",
     "app:dev": "concurrently -r \"yarn mask:watch\" \"yarn tauri dev\"",
     "app:build": "yarn mask && yarn tauri build",
+    "app-ios:dev": "concurrently -r \"yarn mask:watch\" \"yarn tauri ios dev\"",
+    "app-android:dev": "concurrently -r \"yarn mask:watch\" \"yarn tauri android dev\"",
+    "app-ios:build": "yarn mask && yarn tauri ios build",
+    "app-android:build": "yarn mask && yarn tauri android build",
     "prompts": "node ./scripts/fetch-prompts.mjs",
     "prepare": "husky install",
     "proxy-dev": "sh ./scripts/init-proxy.sh && proxychains -f ./scripts/proxychains.conf yarn dev",
@@ -33,8 +37,8 @@
     "html-to-image": "^1.11.11",
     "idb-keyval": "^6.2.1",
     "lodash-es": "^4.17.21",
-    "mermaid": "^10.6.1",
     "markdown-to-txt": "^2.0.1",
+    "mermaid": "^10.6.1",
     "nanoid": "^5.0.3",
     "next": "^14.1.1",
     "node-fetch": "^3.3.1",
@@ -54,8 +58,8 @@
     "zustand": "^4.3.8"
   },
   "devDependencies": {
-    "@tauri-apps/api": "^1.6.0",
-    "@tauri-apps/cli": "1.5.11",
+    "@tauri-apps/api": "^2.0.3",
+    "@tauri-apps/cli": "^2.0.4",
     "@testing-library/jest-dom": "^6.4.8",
     "@testing-library/react": "^16.0.0",
     "@types/jest": "^29.5.13",
