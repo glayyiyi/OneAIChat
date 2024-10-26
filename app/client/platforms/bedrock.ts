@@ -59,6 +59,20 @@ export class BedrockApi implements LLMApi {
       return;
     }
 
+    // Validate inference profile for Llama models
+    if (
+      modelConfig.model.startsWith("meta.llama") &&
+      !accessStore.awsInferenceProfile
+    ) {
+      console.error("Inference profile is required for Llama models");
+      options.onError?.(
+        new Error(
+          "Inference profile ARN is required for Llama models. Please configure an inference profile in your AWS Bedrock settings.",
+        ),
+      );
+      return;
+    }
+
     const messages = options.messages.map((v) => ({
       role: v.role,
       content: getMessageTextContent(v),
@@ -90,6 +104,15 @@ export class BedrockApi implements LLMApi {
 
     if (accessStore.awsSessionToken) {
       headers["X-Session-Token"] = accessStore.awsSessionToken;
+    }
+
+    // Add inference profile for Llama models
+    if (modelConfig.model.startsWith("meta.llama")) {
+      headers["X-Inference-Profile"] = accessStore.awsInferenceProfile;
+      console.log(
+        "[Bedrock] Using inference profile:",
+        accessStore.awsInferenceProfile,
+      );
     }
 
     try {

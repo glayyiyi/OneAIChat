@@ -57,6 +57,7 @@ const DEFAULT_ACCESS_STATE = {
   awsSecretAccessKey: "",
   awsSessionToken: "",
   awsCognitoUser: false,
+  awsInferenceProfile: "", // Added inference profile field
 
   // azure
   azureUrl: "",
