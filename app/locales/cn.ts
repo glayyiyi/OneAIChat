@@ -376,6 +376,19 @@ const cn = {
           SubTitle: "选择一个特定的 API 版本输入",
         },
       },
+
+      Bedrock: {
+        Endpoint: {
+          Title: "AWS Bedrock 接入点",
+          SubTitle: "自定义 AWS Bedrock API 接入点。默认：",
+        },
+        ApiKey: {
+          Title: "AWS 凭证",
+          SubTitle: "格式：AccessKeyId:SecretAccessKey",
+          Placeholder: "access-key-id:secret-access-key",
+        },
+      },
+
       Google: {
         ApiKey: {
           Title: "API 密钥",

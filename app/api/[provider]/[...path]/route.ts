@@ -4,6 +4,7 @@ import { handle as openaiHandler } from "../../openai";
 import { handle as azureHandler } from "../../azure";
 import { handle as googleHandler } from "../../google";
 import { handle as anthropicHandler } from "../../anthropic";
+import { handle as bedrockHandler } from "../../bedrock";
 import { handle as baiduHandler } from "../../baidu";
 import { handle as bytedanceHandler } from "../../bytedance";
 import { handle as alibabaHandler } from "../../alibaba";
@@ -26,6 +27,8 @@ async function handle(
       return googleHandler(req, { params });
     case ApiPath.Anthropic:
       return anthropicHandler(req, { params });
+    case ApiPath.Bedrock:
+      return bedrockHandler(req, { params });
     case ApiPath.Baidu:
       return baiduHandler(req, { params });
     case ApiPath.ByteDance:

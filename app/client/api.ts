@@ -14,6 +14,7 @@ import {
 import { ChatGPTApi, DalleRequestPayload } from "./platforms/openai";
 import { GeminiProApi } from "./platforms/google";
 import { ClaudeApi } from "./platforms/anthropic";
+import { BedrockApi } from "./platforms/bedrock";
 import { ErnieApi } from "./platforms/baidu";
 import { DoubaoApi } from "./platforms/bytedance";
 import { QwenApi } from "./platforms/alibaba";
@@ -25,7 +26,10 @@ import { XAIApi } from "./platforms/xai";
 export const ROLES = ["system", "user", "assistant"] as const;
 export type MessageRole = (typeof ROLES)[number];
 
-export const Models = ["gpt-3.5-turbo", "gpt-4"] as const;
+export const Models = [
+  "anthropic.claude-3-haiku-20240307-v1:0",
+  "anthropic.claude-3-5-sonnet-20240620-v1:0",
+] as const;
 export const TTSModels = ["tts-1", "tts-1-hd"] as const;
 export type ChatModel = ModelType;
 
@@ -135,6 +139,9 @@ export class ClientApi {
       case ModelProvider.Claude:
         this.llm = new ClaudeApi();
         break;
+      case ModelProvider.Bedrock:
+        this.llm = new BedrockApi();
+        break;
       case ModelProvider.Ernie:
         this.llm = new ErnieApi();
         break;
@@ -238,6 +245,7 @@ export function getHeaders(ignoreHeaders: boolean = false) {
     const isGoogle = modelConfig.providerName === ServiceProvider.Google;
     const isAzure = modelConfig.providerName === ServiceProvider.Azure;
     const isAnthropic = modelConfig.providerName === ServiceProvider.Anthropic;
+    const isBedrock = modelConfig.providerName === ServiceProvider.Bedrock;
     const isBaidu = modelConfig.providerName == ServiceProvider.Baidu;
     const isByteDance = modelConfig.providerName === ServiceProvider.ByteDance;
     const isAlibaba = modelConfig.providerName === ServiceProvider.Alibaba;
@@ -251,6 +259,8 @@ export function getHeaders(ignoreHeaders: boolean = false) {
       ? accessStore.azureApiKey
       : isAnthropic
       ? accessStore.anthropicApiKey
+      : isBedrock
+      ? accessStore.awsAccessKeyId // Use AWS access key for Bedrock
       : isByteDance
       ? accessStore.bytedanceApiKey
       : isAlibaba
@@ -268,6 +278,7 @@ export function getHeaders(ignoreHeaders: boolean = false) {
       isGoogle,
       isAzure,
       isAnthropic,
+      isBedrock,
       isBaidu,
       isByteDance,
       isAlibaba,
@@ -280,12 +291,15 @@ export function getHeaders(ignoreHeaders: boolean = false) {
   }
 
   function getAuthHeader(): string {
+    const { isAzure, isAnthropic, isGoogle, isBedrock } = getConfig();
     return isAzure
       ? "api-key"
       : isAnthropic
       ? "x-api-key"
       : isGoogle
       ? "x-goog-api-key"
+      : isBedrock
+      ? "x-api-key"
       : "Authorization";
   }
 
@@ -293,26 +307,38 @@ export function getHeaders(ignoreHeaders: boolean = false) {
     isGoogle,
     isAzure,
     isAnthropic,
+    isBedrock,
     isBaidu,
     apiKey,
     isEnabledAccessControl,
   } = getConfig();
+
   // when using baidu api in app, not set auth header
   if (isBaidu && clientConfig?.isApp) return headers;
 
   const authHeader = getAuthHeader();
 
-  const bearerToken = getBearerToken(
-    apiKey,
-    isAzure || isAnthropic || isGoogle,
-  );
-
-  if (bearerToken) {
-    headers[authHeader] = bearerToken;
-  } else if (isEnabledAccessControl && validString(accessStore.accessCode)) {
-    headers["Authorization"] = getBearerToken(
-      ACCESS_CODE_PREFIX + accessStore.accessCode,
+  if (isBedrock) {
+    // Add AWS credentials for Bedrock
+    headers["X-Region"] = accessStore.awsRegion;
+    headers["X-Access-Key"] = accessStore.awsAccessKeyId;
+    headers["X-Secret-Key"] = accessStore.awsSecretAccessKey;
+    if (accessStore.awsSessionToken) {
+      headers["X-Session-Token"] = accessStore.awsSessionToken;
+    }
+  } else {
+    const bearerToken = getBearerToken(
+      apiKey,
+      isAzure || isAnthropic || isGoogle,
     );
+
+    if (bearerToken) {
+      headers[authHeader] = bearerToken;
+    } else if (isEnabledAccessControl && validString(accessStore.accessCode)) {
+      headers["Authorization"] = getBearerToken(
+        ACCESS_CODE_PREFIX + accessStore.accessCode,
+      );
+    }
   }
 
   return headers;
@@ -324,6 +350,8 @@ export function getClientApi(provider: ServiceProvider): ClientApi {
       return new ClientApi(ModelProvider.GeminiPro);
     case ServiceProvider.Anthropic:
       return new ClientApi(ModelProvider.Claude);
+    case ServiceProvider.Bedrock:
+      return new ClientApi(ModelProvider.Bedrock);
     case ServiceProvider.Baidu:
       return new ClientApi(ModelProvider.Ernie);
     case ServiceProvider.ByteDance:

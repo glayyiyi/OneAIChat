@@ -53,19 +53,35 @@ export function auth(req: NextRequest, modelProvider: ModelProvider) {
     };
   }
 
+  // Special handling for Bedrock
+  if (modelProvider === ModelProvider.Bedrock) {
+    const region = req.headers.get("X-Region");
+    const accessKeyId = req.headers.get("X-Access-Key");
+    const secretKey = req.headers.get("X-Secret-Key");
+
+    console.log("[Auth] Bedrock credentials:", {
+      region,
+      accessKeyId: accessKeyId ? "***" : undefined,
+      secretKey: secretKey ? "***" : undefined,
+    });
+
+    // Check if AWS credentials are provided
+    if (!region || !accessKeyId || !secretKey) {
+      return {
+        error: true,
+        msg: "Missing AWS credentials. Please configure Region, Access Key ID, and Secret Access Key in settings.",
+      };
+    }
+
+    return { error: false };
+  }
+
   // if user does not provide an api key, inject system api key
   if (!apiKey) {
     const serverConfig = getServerSideConfig();
 
-    // const systemApiKey =
-    //   modelProvider === ModelProvider.GeminiPro
-    //     ? serverConfig.googleApiKey
-    //     : serverConfig.isAzure
-    //     ? serverConfig.azureApiKey
-    //     : serverConfig.apiKey;
-
     let systemApiKey: string | undefined;
-
+    console.log("[Auth] modelProvider:" + modelProvider);
     switch (modelProvider) {
       case ModelProvider.Stability:
         systemApiKey = serverConfig.stabilityApiKey;
@@ -108,7 +124,7 @@ export function auth(req: NextRequest, modelProvider: ModelProvider) {
       console.log("[Auth] use system api key");
       req.headers.set("Authorization", `Bearer ${systemApiKey}`);
     } else {
-      console.log("[Auth] admin did not provide an api key");
+      console.log("[Auth] admin did not provide an api key......");
     }
   } else {
     console.log("[Auth] use user api key");
