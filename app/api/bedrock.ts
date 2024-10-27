@@ -11,6 +11,34 @@ import {
 
 const ALLOWED_PATH = new Set(["invoke"]);
 
+// Helper function to get the base model type from modelId
+function getModelType(modelId: string): string {
+  // If it's an inference profile ARN, extract the model name
+  if (modelId.includes("inference-profile")) {
+    const match = modelId.match(/us\.(meta\.llama.+?)$/);
+    if (match) return match[1];
+  }
+  return modelId;
+}
+
+// Helper function to clean error messages from chat history
+function cleanErrorMessages(messages: any[]): any[] {
+  return messages.filter(
+    (m) =>
+      !m.content.includes('"error": true') &&
+      !m.content.includes("ValidationException") &&
+      !m.content.includes("Unsupported model"),
+  );
+}
+
+// Helper function to clean repeated content
+function cleanRepeatedContent(text: string): string {
+  // Split by common separators
+  const parts = text.split(/\n+|(?:A:|Assistant:)\s*/);
+  // Take the first non-empty part
+  return parts.find((p) => p.trim().length > 0) || text;
+}
+
 export async function handle(
   req: NextRequest,
   { params }: { params: { path: string[] } },
@@ -55,7 +83,13 @@ export async function handle(
 const serverConfig = getServerSideConfig();
 
 function formatRequestBody(modelId: string, messages: any[]) {
-  if (modelId.startsWith("anthropic.claude")) {
+  // Get the base model type
+  const baseModel = getModelType(modelId);
+
+  // Clean error messages from chat history
+  const cleanMessages = cleanErrorMessages(messages);
+
+  if (baseModel.startsWith("anthropic.claude")) {
     // Format for Claude models
     const roleMap: Record<string, string> = {
       system: "system",
@@ -64,13 +98,13 @@ function formatRequestBody(modelId: string, messages: any[]) {
     };
 
     // Clean up messages and ensure proper role mapping
-    const cleanMessages = messages.map((m: any) => ({
+    const formattedMessages = cleanMessages.map((m: any) => ({
       role: roleMap[m.role] || m.role,
       content: m.content.trim(),
     }));
 
     // Ensure messages alternate between user and assistant
-    const formattedMessages = cleanMessages.reduce(
+    const finalMessages = formattedMessages.reduce(
       (acc: any[], msg: any, i: number) => {
         if (i === 0) {
           // First message can be from user
@@ -91,10 +125,10 @@ function formatRequestBody(modelId: string, messages: any[]) {
     );
 
     // For Claude 3 and 3.5 models
-    if (modelId.includes("claude-3") || modelId.includes("claude-3-5")) {
+    if (baseModel.includes("claude-3") || baseModel.includes("claude-3-5")) {
       return {
         anthropic_version: "bedrock-2023-05-31",
-        messages: formattedMessages,
+        messages: finalMessages,
         max_tokens: 2048,
         temperature: 0.7,
         top_p: 0.9,
@@ -102,7 +136,7 @@ function formatRequestBody(modelId: string, messages: any[]) {
     }
     // For Claude 2 and earlier models
     else {
-      const formattedText = formattedMessages
+      const formattedText = finalMessages
         .map(
           (m: any) =>
             `\n\n${m.role === "user" ? "Human" : "Assistant"}: ${m.content}`,
@@ -118,9 +152,9 @@ function formatRequestBody(modelId: string, messages: any[]) {
         anthropic_version: "bedrock-2023-05-31",
       };
     }
-  } else if (modelId.startsWith("amazon.titan")) {
+  } else if (baseModel.startsWith("amazon.titan")) {
     return {
-      inputText: messages[messages.length - 1].content,
+      inputText: cleanMessages[cleanMessages.length - 1].content,
       textGenerationConfig: {
         maxTokenCount: 2048,
         temperature: 0.7,
@@ -128,33 +162,39 @@ function formatRequestBody(modelId: string, messages: any[]) {
         stopSequences: [],
       },
     };
-  } else if (
-    modelId.startsWith("meta.llama") ||
-    modelId.includes("inference-llama")
-  ) {
-    // Format for Llama models (including inference profile ARNs)
-    const lastMessage = messages[messages.length - 1];
-    return {
-      messages: [
-        {
-          role: "user",
-          content: lastMessage.content,
-        },
-      ],
-      temperature: 0.7,
-      top_p: 0.9,
-      max_tokens: 2048,
-    };
-  } else if (modelId.startsWith("mistral.")) {
-    // For Mistral models, format as a conversation prompt
-    // Filter out messages that look like JSON responses
-    const validMessages = messages.filter(
-      (m: any) =>
-        !m.content.includes("error") && !m.content.includes('{"outputs"'),
-    );
+  } else if (baseModel.startsWith("meta.llama")) {
+    // Format for Llama models
+    const formattedMessages = cleanMessages
+      .map(
+        (m: any) =>
+          `${m.role === "user" ? "Human" : "Assistant"}: ${m.content.trim()}`,
+      )
+      .join("\n\n");
 
+    // Check if using inference profile
+    if (modelId.includes("inference-profile")) {
+      const systemPrompt =
+        "You are a helpful AI assistant. Provide direct and concise responses. Do not repeat yourself or generate additional dialogue.";
+      return {
+        prompt: `${systemPrompt}\n\n${formattedMessages}\n\nAssistant:`,
+        temperature: 0.6,
+        top_p: 0.9,
+      };
+    } else {
+      // For base model
+      return {
+        inputs: [cleanMessages],
+        parameters: {
+          max_new_tokens: 512,
+          temperature: 0.6,
+          top_p: 0.9,
+        },
+      };
+    }
+  } else if (baseModel.startsWith("mistral.")) {
+    // For Mistral models, format as a conversation prompt
     // Get the last user message
-    const lastUserMessage = validMessages[validMessages.length - 1];
+    const lastUserMessage = cleanMessages[cleanMessages.length - 1];
     if (!lastUserMessage) {
       throw new Error("No valid user message found");
     }
@@ -175,8 +215,11 @@ async function parseResponse(modelId: string, response: Response) {
   try {
     const responseJson = JSON.parse(text);
 
-    if (modelId.startsWith("anthropic.claude")) {
-      if (modelId.includes("claude-3") || modelId.includes("claude-3-5")) {
+    // Get the base model type for response parsing
+    const baseModel = getModelType(modelId);
+
+    if (baseModel.startsWith("anthropic.claude")) {
+      if (baseModel.includes("claude-3") || baseModel.includes("claude-3-5")) {
         const content =
           responseJson.content?.[0]?.text ||
           responseJson.content ||
@@ -185,19 +228,15 @@ async function parseResponse(modelId: string, response: Response) {
       } else {
         return new Response(responseJson.completion);
       }
-    } else if (modelId.startsWith("amazon.titan")) {
+    } else if (baseModel.startsWith("amazon.titan")) {
       return new Response(responseJson.results[0].outputText);
-    } else if (
-      modelId.startsWith("meta.llama") ||
-      modelId.includes("inference-llama")
-    ) {
+    } else if (baseModel.startsWith("meta.llama")) {
       const content =
-        responseJson.messages?.[0]?.content ||
-        responseJson.generation ||
-        responseJson.text ||
-        responseJson.output;
-      return new Response(content);
-    } else if (modelId.startsWith("mistral.")) {
+        responseJson.generation || responseJson.completion || text;
+      // Clean up repeated content
+      const cleanContent = cleanRepeatedContent(content);
+      return new Response(cleanContent);
+    } else if (baseModel.startsWith("mistral.")) {
       // Extract the actual text content from Mistral's response
       if (
         responseJson.outputs &&
@@ -223,7 +262,6 @@ async function request(req: NextRequest) {
   const accessKeyId = req.headers.get("X-Access-Key") || "";
   const secretAccessKey = req.headers.get("X-Secret-Key") || "";
   const sessionToken = req.headers.get("X-Session-Token");
-  const inferenceProfile = req.headers.get("X-Inference-Profile");
 
   if (!accessKeyId || !secretAccessKey) {
     return NextResponse.json(
@@ -262,29 +300,10 @@ async function request(req: NextRequest) {
     console.log("[Bedrock] Invoking model:", model);
     console.log("[Bedrock] Messages:", messages);
 
-    // For Llama models, we need an inference profile
-    if (model.startsWith("meta.llama")) {
-      if (!inferenceProfile) {
-        throw new Error(
-          "Llama models require an inference profile ARN. Please follow these steps:\n" +
-            "1. Go to AWS Bedrock console\n" +
-            "2. Create an inference profile for the Llama model\n" +
-            "3. Copy the inference profile ARN\n" +
-            "4. Add it to your application's AWS settings under 'Inference Profile ARN'",
-        );
-      }
-      if (!inferenceProfile.includes("inference")) {
-        throw new Error(
-          "Invalid inference profile ARN. The ARN should contain 'inference' and be in the format: \n" +
-            "arn:aws:bedrock:region:account:inference-profile/profile-name",
-        );
-      }
-    }
-
     const requestBody = formatRequestBody(model, messages);
     const jsonString = JSON.stringify(requestBody);
     const input: InvokeModelCommandInput = {
-      modelId: model.startsWith("meta.llama") ? inferenceProfile : model,
+      modelId: model,
       contentType: "application/json",
       accept: "application/json",
       body: Uint8Array.from(Buffer.from(jsonString)),

@@ -22,6 +22,14 @@ export interface BedrockChatRequest {
   stream?: boolean;
 }
 
+// Function to generate inference profile ARN
+function generateInferenceProfileArn(region: string, modelId: string): string {
+  const accountId = "820674626047";
+  // Add "us." prefix to model ID
+  const awsModelId = `us.${modelId}`;
+  return `arn:aws:bedrock:${region}:${accountId}:inference-profile/${awsModelId}`;
+}
+
 export class BedrockApi implements LLMApi {
   speech(options: SpeechOptions): Promise<ArrayBuffer> {
     throw new Error("Method not implemented.");
@@ -59,20 +67,6 @@ export class BedrockApi implements LLMApi {
       return;
     }
 
-    // Validate inference profile for Llama models
-    if (
-      modelConfig.model.startsWith("meta.llama") &&
-      !accessStore.awsInferenceProfile
-    ) {
-      console.error("Inference profile is required for Llama models");
-      options.onError?.(
-        new Error(
-          "Inference profile ARN is required for Llama models. Please configure an inference profile in your AWS Bedrock settings.",
-        ),
-      );
-      return;
-    }
-
     const messages = options.messages.map((v) => ({
       role: v.role,
       content: getMessageTextContent(v),
@@ -106,13 +100,17 @@ export class BedrockApi implements LLMApi {
       headers["X-Session-Token"] = accessStore.awsSessionToken;
     }
 
-    // Add inference profile for Llama models
+    // Handle inference profile for Llama models
     if (modelConfig.model.startsWith("meta.llama")) {
-      headers["X-Inference-Profile"] = accessStore.awsInferenceProfile;
-      console.log(
-        "[Bedrock] Using inference profile:",
-        accessStore.awsInferenceProfile,
+      // Generate inference profile ARN
+      const inferenceProfile = generateInferenceProfileArn(
+        accessStore.awsRegion,
+        modelConfig.model,
       );
+      console.log("[Bedrock] Using inference profile:", inferenceProfile);
+
+      // Update the model ID to use the inference profile
+      requestBody.model = inferenceProfile;
     }
 
     try {
