@@ -1,343 +1,306 @@
 import { getServerSideConfig } from "../config/server";
-import { ModelProvider } from "../constant";
 import { prettyObject } from "../utils/format";
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "./auth";
+import { decrypt } from "../utils/encryption";
 import {
   BedrockRuntimeClient,
-  InvokeModelCommand,
-  InvokeModelCommandInput,
+  ConverseStreamCommand,
+  ConverseStreamCommandInput,
+  Message,
+  ContentBlock,
+  ConverseStreamOutput,
 } from "@aws-sdk/client-bedrock-runtime";
 
-const ALLOWED_PATH = new Set(["invoke"]);
+const ALLOWED_PATH = new Set(["converse"]);
 
-// Helper function to get the base model type from modelId
-function getModelType(modelId: string): string {
-  // If it's an inference profile ARN, extract the model name
-  if (modelId.includes("inference-profile")) {
-    const match = modelId.match(/us\.(meta\.llama.+?)$/);
-    if (match) return match[1];
-  }
-  return modelId;
-}
+// AWS Credential Validation Function
+function validateAwsCredentials(
+  region: string,
+  accessKeyId: string,
+  secretAccessKey: string,
+): boolean {
+  const regionRegex = /^[a-z]{2}-[a-z]+-\d+$/;
+  const accessKeyRegex = /^(AKIA|A3T|ASIA)[A-Z0-9]{16}$/;
 
-// Helper function to clean error messages from chat history
-function cleanErrorMessages(messages: any[]): any[] {
-  return messages.filter(
-    (m) =>
-      !m.content.includes('"error": true') &&
-      !m.content.includes("ValidationException") &&
-      !m.content.includes("Unsupported model"),
+  return (
+    regionRegex.test(region) &&
+    accessKeyRegex.test(accessKeyId) &&
+    secretAccessKey.length === 40
   );
 }
 
-// Helper function to clean repeated content
-function cleanRepeatedContent(text: string): string {
-  // Split by common separators
-  const parts = text.split(/\n+|(?:A:|Assistant:)\s*/);
-  // Take the first non-empty part
-  return parts.find((p) => p.trim().length > 0) || text;
+export interface ConverseRequest {
+  modelId: string;
+  messages: {
+    role: "user" | "assistant" | "system";
+    content: string | any[];
+  }[];
+  inferenceConfig?: {
+    maxTokens?: number;
+    temperature?: number;
+    topP?: number;
+    stopSequences?: string[];
+  };
+  tools?: {
+    name: string;
+    description?: string;
+    input_schema: any;
+  }[];
+  stream?: boolean;
+}
+
+function supportsToolUse(modelId: string): boolean {
+  return modelId.toLowerCase().includes("claude-3");
+}
+
+function formatRequestBody(
+  request: ConverseRequest,
+): ConverseStreamCommandInput {
+  const messages: Message[] = request.messages.map((msg) => ({
+    role: msg.role === "system" ? "user" : msg.role,
+    content: Array.isArray(msg.content)
+      ? msg.content.map((item) => {
+          if (item.type === "tool_use") {
+            return {
+              toolUse: {
+                toolUseId: item.id,
+                name: item.name,
+                input: item.input || "{}",
+              },
+            } as ContentBlock;
+          }
+          if (item.type === "tool_result") {
+            return {
+              toolResult: {
+                toolUseId: item.tool_use_id,
+                content: [{ text: item.content || ";" }],
+                status: "success",
+              },
+            } as ContentBlock;
+          }
+          if (item.type === "text") {
+            return { text: item.text || ";" } as ContentBlock;
+          }
+          if (item.type === "image") {
+            return {
+              image: {
+                format: item.source.media_type.split("/")[1] as
+                  | "png"
+                  | "jpeg"
+                  | "gif"
+                  | "webp",
+                source: {
+                  bytes: Uint8Array.from(
+                    Buffer.from(item.source.data, "base64"),
+                  ),
+                },
+              },
+            } as ContentBlock;
+          }
+          return { text: ";" } as ContentBlock;
+        })
+      : [{ text: msg.content || ";" } as ContentBlock],
+  }));
+
+  const input: ConverseStreamCommandInput = {
+    modelId: request.modelId,
+    messages,
+    ...(request.inferenceConfig && {
+      inferenceConfig: request.inferenceConfig,
+    }),
+  };
+
+  if (request.tools?.length && supportsToolUse(request.modelId)) {
+    input.toolConfig = {
+      tools: request.tools.map((tool) => ({
+        toolSpec: {
+          name: tool.name,
+          description: tool.description,
+          inputSchema: {
+            json: tool.input_schema,
+          },
+        },
+      })),
+      toolChoice: { auto: {} },
+    };
+  }
+
+  return input;
 }
 
 export async function handle(
   req: NextRequest,
   { params }: { params: { path: string[] } },
 ) {
-  console.log("[Bedrock Route] params ", params);
-
   if (req.method === "OPTIONS") {
     return NextResponse.json({ body: "OK" }, { status: 200 });
   }
 
   const subpath = params.path.join("/");
-
   if (!ALLOWED_PATH.has(subpath)) {
-    console.log("[Bedrock Route] forbidden path ", subpath);
+    return NextResponse.json(
+      { error: true, msg: "Path not allowed: " + subpath },
+      { status: 403 },
+    );
+  }
+
+  const serverConfig = getServerSideConfig();
+  let region = serverConfig.awsRegion;
+  let accessKeyId = serverConfig.awsAccessKey;
+  let secretAccessKey = serverConfig.awsSecretKey;
+  let sessionToken = undefined;
+
+  // Attempt to get credentials from headers if not in server config
+  if (!region || !accessKeyId || !secretAccessKey) {
+    region = decrypt(req.headers.get("X-Region") ?? "");
+    accessKeyId = decrypt(req.headers.get("X-Access-Key") ?? "");
+    secretAccessKey = decrypt(req.headers.get("X-Secret-Key") ?? "");
+    sessionToken = req.headers.get("X-Session-Token")
+      ? decrypt(req.headers.get("X-Session-Token") ?? "")
+      : undefined;
+  }
+
+  // Validate AWS credentials
+  if (!validateAwsCredentials(region, accessKeyId, secretAccessKey)) {
     return NextResponse.json(
       {
         error: true,
-        msg: "you are not allowed to request " + subpath,
+        msg: "Invalid AWS credentials. Please check your region, access key, and secret key.",
       },
-      {
-        status: 403,
-      },
+      { status: 401 },
     );
   }
 
-  const authResult = auth(req, ModelProvider.Bedrock);
-  if (authResult.error) {
-    return NextResponse.json(authResult, {
-      status: 401,
-    });
-  }
-
   try {
-    const response = await request(req);
-    return response;
-  } catch (e) {
-    console.error("[Bedrock] ", e);
-    return NextResponse.json(prettyObject(e));
-  }
-}
-
-const serverConfig = getServerSideConfig();
-
-function formatRequestBody(modelId: string, messages: any[]) {
-  // Get the base model type
-  const baseModel = getModelType(modelId);
-
-  // Clean error messages from chat history
-  const cleanMessages = cleanErrorMessages(messages);
-
-  if (baseModel.startsWith("anthropic.claude")) {
-    // Format for Claude models
-    const roleMap: Record<string, string> = {
-      system: "system",
-      user: "user",
-      assistant: "assistant",
-    };
-
-    // Clean up messages and ensure proper role mapping
-    const formattedMessages = cleanMessages.map((m: any) => ({
-      role: roleMap[m.role] || m.role,
-      content: m.content.trim(),
-    }));
-
-    // Ensure messages alternate between user and assistant
-    const finalMessages = formattedMessages.reduce(
-      (acc: any[], msg: any, i: number) => {
-        if (i === 0) {
-          // First message can be from user
-          return [msg];
-        }
-        const prevMsg = acc[acc.length - 1];
-        if (prevMsg.role === msg.role && msg.role === "user") {
-          // If we have consecutive user messages, insert a placeholder assistant message
-          acc.push({
-            role: "assistant",
-            content: "I understand. Please continue.",
-          });
-        }
-        acc.push(msg);
-        return acc;
+    const client = new BedrockRuntimeClient({
+      region,
+      credentials: {
+        accessKeyId,
+        secretAccessKey,
+        sessionToken,
       },
-      [],
-    );
-
-    // For Claude 3 and 3.5 models
-    if (baseModel.includes("claude-3") || baseModel.includes("claude-3-5")) {
-      return {
-        anthropic_version: "bedrock-2023-05-31",
-        messages: finalMessages,
-        max_tokens: 2048,
-        temperature: 0.7,
-        top_p: 0.9,
-      };
-    }
-    // For Claude 2 and earlier models
-    else {
-      const formattedText = finalMessages
-        .map(
-          (m: any) =>
-            `\n\n${m.role === "user" ? "Human" : "Assistant"}: ${m.content}`,
-        )
-        .join("");
-
-      return {
-        prompt: formattedText + "\n\nAssistant:",
-        max_tokens_to_sample: 2048,
-        temperature: 0.7,
-        top_p: 0.9,
-        stop_sequences: ["\n\nHuman:", "\n\nAssistant:"],
-        anthropic_version: "bedrock-2023-05-31",
-      };
-    }
-  } else if (baseModel.startsWith("amazon.titan")) {
-    return {
-      inputText: cleanMessages[cleanMessages.length - 1].content,
-      textGenerationConfig: {
-        maxTokenCount: 2048,
-        temperature: 0.7,
-        topP: 0.9,
-        stopSequences: [],
-      },
-    };
-  } else if (baseModel.startsWith("meta.llama")) {
-    // Format for Llama models
-    const formattedMessages = cleanMessages
-      .map(
-        (m: any) =>
-          `${m.role === "user" ? "Human" : "Assistant"}: ${m.content.trim()}`,
-      )
-      .join("\n\n");
-
-    // Check if using inference profile
-    if (modelId.includes("inference-profile")) {
-      const systemPrompt =
-        "You are a helpful AI assistant. Provide direct and concise responses. Do not repeat yourself or generate additional dialogue.";
-      return {
-        prompt: `${systemPrompt}\n\n${formattedMessages}\n\nAssistant:`,
-        temperature: 0.6,
-        top_p: 0.9,
-      };
-    } else {
-      // For base model
-      return {
-        inputs: [cleanMessages],
-        parameters: {
-          max_new_tokens: 512,
-          temperature: 0.6,
-          top_p: 0.9,
-        },
-      };
-    }
-  } else if (baseModel.startsWith("mistral.")) {
-    // For Mistral models, format as a conversation prompt
-    // Get the last user message
-    const lastUserMessage = cleanMessages[cleanMessages.length - 1];
-    if (!lastUserMessage) {
-      throw new Error("No valid user message found");
-    }
-
-    return {
-      prompt: `<s>[INST] ${lastUserMessage.content.trim()} [/INST]`,
-      max_tokens: 2048,
-      temperature: 0.7,
-      top_p: 0.9,
-    };
-  } else {
-    throw new Error(`Unsupported model: ${modelId}`);
-  }
-}
-
-async function parseResponse(modelId: string, response: Response) {
-  const text = await response.text();
-  try {
-    const responseJson = JSON.parse(text);
-
-    // Get the base model type for response parsing
-    const baseModel = getModelType(modelId);
-
-    if (baseModel.startsWith("anthropic.claude")) {
-      if (baseModel.includes("claude-3") || baseModel.includes("claude-3-5")) {
-        const content =
-          responseJson.content?.[0]?.text ||
-          responseJson.content ||
-          responseJson.completion;
-        return new Response(content);
-      } else {
-        return new Response(responseJson.completion);
-      }
-    } else if (baseModel.startsWith("amazon.titan")) {
-      return new Response(responseJson.results[0].outputText);
-    } else if (baseModel.startsWith("meta.llama")) {
-      const content =
-        responseJson.generation || responseJson.completion || text;
-      // Clean up repeated content
-      const cleanContent = cleanRepeatedContent(content);
-      return new Response(cleanContent);
-    } else if (baseModel.startsWith("mistral.")) {
-      // Extract the actual text content from Mistral's response
-      if (
-        responseJson.outputs &&
-        responseJson.outputs[0] &&
-        responseJson.outputs[0].text
-      ) {
-        return new Response(responseJson.outputs[0].text.trim());
-      }
-      return new Response(text);
-    } else {
-      throw new Error(`Unsupported model: ${modelId}`);
-    }
-  } catch (e) {
-    console.error("[Bedrock] Failed to parse response JSON:", e);
-    return new Response(text);
-  }
-}
-
-async function request(req: NextRequest) {
-  const controller = new AbortController();
-
-  const region = req.headers.get("X-Region") || "us-east-1";
-  const accessKeyId = req.headers.get("X-Access-Key") || "";
-  const secretAccessKey = req.headers.get("X-Secret-Key") || "";
-  const sessionToken = req.headers.get("X-Session-Token");
-
-  if (!accessKeyId || !secretAccessKey) {
-    return NextResponse.json(
-      {
-        error: true,
-        message: "Missing AWS credentials",
-      },
-      {
-        status: 401,
-      },
-    );
-  }
-
-  console.log("[Bedrock] Using region:", region);
-
-  const client = new BedrockRuntimeClient({
-    region,
-    credentials: {
-      accessKeyId,
-      secretAccessKey,
-      sessionToken: sessionToken || undefined,
-    },
-  });
-
-  const timeoutId = setTimeout(
-    () => {
-      controller.abort();
-    },
-    10 * 60 * 1000,
-  );
-
-  try {
-    const body = await req.json();
-    const { messages, model } = body;
-
-    console.log("[Bedrock] Invoking model:", model);
-    console.log("[Bedrock] Messages:", messages);
-
-    const requestBody = formatRequestBody(model, messages);
-    const jsonString = JSON.stringify(requestBody);
-    const input: InvokeModelCommandInput = {
-      modelId: model,
-      contentType: "application/json",
-      accept: "application/json",
-      body: Uint8Array.from(Buffer.from(jsonString)),
-    };
-
-    console.log("[Bedrock] Request input:", {
-      ...input,
-      body: requestBody,
     });
 
-    const command = new InvokeModelCommand(input);
+    const body = (await req.json()) as ConverseRequest;
+    const command = new ConverseStreamCommand(formatRequestBody(body));
     const response = await client.send(command);
 
-    console.log("[Bedrock] Got response");
+    if (!response.stream) {
+      throw new Error("No stream in response");
+    }
 
-    // Create a Response object from the raw response
-    const responseBody = new TextDecoder().decode(response.body);
-    const result = await parseResponse(model, new Response(responseBody));
+    // If stream is false, accumulate the response and return as JSON
+    console.log("Body.stream==========" + body.stream);
+    if (body.stream === false) {
+      let fullResponse = {
+        content: "",
+      };
 
-    console.log("[Bedrock] Parsed response:", await result.clone().text());
+      const responseStream =
+        response.stream as AsyncIterable<ConverseStreamOutput>;
+      for await (const event of responseStream) {
+        if (
+          "contentBlockDelta" in event &&
+          event.contentBlockDelta?.delta &&
+          "text" in event.contentBlockDelta.delta &&
+          event.contentBlockDelta.delta.text
+        ) {
+          fullResponse.content += event.contentBlockDelta.delta.text;
+        }
+      }
 
-    return result;
+      return NextResponse.json(fullResponse);
+    }
+
+    // Otherwise, return streaming response
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          const responseStream =
+            response.stream as AsyncIterable<ConverseStreamOutput>;
+          for await (const event of responseStream) {
+            if (
+              "contentBlockStart" in event &&
+              event.contentBlockStart?.start?.toolUse &&
+              event.contentBlockStart.contentBlockIndex !== undefined
+            ) {
+              controller.enqueue(
+                `data: ${JSON.stringify({
+                  type: "content_block",
+                  content_block: {
+                    type: "tool_use",
+                    id: event.contentBlockStart.start.toolUse.toolUseId,
+                    name: event.contentBlockStart.start.toolUse.name,
+                  },
+                  index: event.contentBlockStart.contentBlockIndex,
+                })}\n\n`,
+              );
+            } else if (
+              "contentBlockDelta" in event &&
+              event.contentBlockDelta?.delta &&
+              event.contentBlockDelta.contentBlockIndex !== undefined
+            ) {
+              const delta = event.contentBlockDelta.delta;
+
+              if ("text" in delta && delta.text) {
+                controller.enqueue(
+                  `data: ${JSON.stringify({
+                    type: "content_block_delta",
+                    delta: {
+                      type: "text_delta",
+                      text: delta.text,
+                    },
+                    index: event.contentBlockDelta.contentBlockIndex,
+                  })}\n\n`,
+                );
+              } else if ("toolUse" in delta && delta.toolUse?.input) {
+                controller.enqueue(
+                  `data: ${JSON.stringify({
+                    type: "content_block_delta",
+                    delta: {
+                      type: "input_json_delta",
+                      partial_json: delta.toolUse.input,
+                    },
+                    index: event.contentBlockDelta.contentBlockIndex,
+                  })}\n\n`,
+                );
+              }
+            } else if (
+              "contentBlockStop" in event &&
+              event.contentBlockStop?.contentBlockIndex !== undefined
+            ) {
+              controller.enqueue(
+                `data: ${JSON.stringify({
+                  type: "content_block_stop",
+                  index: event.contentBlockStop.contentBlockIndex,
+                })}\n\n`,
+              );
+            }
+          }
+          controller.close();
+        } catch (error) {
+          console.error("[Bedrock] Stream error:", error);
+          controller.error(error);
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
   } catch (e) {
-    console.error("[Bedrock] Request error:", e);
+    console.error("[Bedrock] Error:", e);
     return NextResponse.json(
       {
         error: true,
         message: e instanceof Error ? e.message : "Unknown error",
+        details: prettyObject(e),
       },
-      {
-        status: 500,
-      },
+      { status: 500 },
     );
-  } finally {
-    clearTimeout(timeoutId);
   }
 }

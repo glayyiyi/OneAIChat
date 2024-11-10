@@ -81,6 +81,7 @@ const cn = {
       Clear: "清除聊天",
       Settings: "对话设置",
       UploadImage: "上传图片",
+      UploadDocument: "上传文档",
     },
     Rename: "重命名对话",
     Typing: "正在输入…",
@@ -342,6 +343,32 @@ const cn = {
           SubTitle: "除默认地址外，必须包含 http(s)://",
         },
       },
+      Bedrock: {
+        Region: {
+          Title: "AWS Region",
+          SubTitle: "The AWS region where Bedrock service is located",
+          Placeholder: "us-west-2",
+        },
+        AccessKey: {
+          Title: "AWS Access Key ID",
+          SubTitle: "Your AWS access key ID for Bedrock service",
+          Placeholder: "AKIA...",
+        },
+        SecretKey: {
+          Title: "AWS Secret Access Key",
+          SubTitle: "Your AWS secret access key for Bedrock service",
+          Placeholder: "****",
+        },
+        SessionToken: {
+          Title: "AWS Session Token (Optional)",
+          SubTitle: "Your AWS session token if using temporary credentials",
+          Placeholder: "Optional session token",
+        },
+        Endpoint: {
+          Title: "AWS Bedrock Endpoint",
+          SubTitle: "Custom endpoint for AWS Bedrock API. Default: ",
+        },
+      },
       Azure: {
         ApiKey: {
           Title: "接口密钥",
@@ -376,19 +403,6 @@ const cn = {
           SubTitle: "选择一个特定的 API 版本输入",
         },
       },
-
-      Bedrock: {
-        Endpoint: {
-          Title: "AWS Bedrock 接入点",
-          SubTitle: "自定义 AWS Bedrock API 接入点。默认：",
-        },
-        ApiKey: {
-          Title: "AWS 凭证",
-          SubTitle: "格式：AccessKeyId:SecretAccessKey",
-          Placeholder: "access-key-id:secret-access-key",
-        },
-      },
-
       Google: {
         ApiKey: {
           Title: "API 密钥",

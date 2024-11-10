@@ -82,6 +82,7 @@ const en: LocaleType = {
       Clear: "Clear Context",
       Settings: "Settings",
       UploadImage: "Upload Images",
+      UploadDocument: "Upload Documents",
     },
     Rename: "Rename Chat",
     Typing: "Typing…",
@@ -346,6 +347,32 @@ const en: LocaleType = {
           SubTitle: "Must start with http(s):// or use /api/openai as default",
         },
       },
+      Bedrock: {
+        Region: {
+          Title: "AWS Region",
+          SubTitle: "The AWS region where Bedrock service is located",
+          Placeholder: "us-west-2",
+        },
+        AccessKey: {
+          Title: "AWS Access Key ID",
+          SubTitle: "Your AWS access key ID for Bedrock service",
+          Placeholder: "AKIA...",
+        },
+        SecretKey: {
+          Title: "AWS Secret Access Key",
+          SubTitle: "Your AWS secret access key for Bedrock service",
+          Placeholder: "****",
+        },
+        SessionToken: {
+          Title: "AWS Session Token (Optional)",
+          SubTitle: "Your AWS session token if using temporary credentials",
+          Placeholder: "Optional session token",
+        },
+        Endpoint: {
+          Title: "AWS Bedrock Endpoint",
+          SubTitle: "Custom endpoint for AWS Bedrock API. Default: ",
+        },
+      },
       Azure: {
         ApiKey: {
           Title: "Azure Api Key",
@@ -381,37 +408,6 @@ const en: LocaleType = {
           SubTitle: "Select and input a specific API version",
         },
       },
-      // ... (previous code remains the same until Bedrock section)
-
-      Bedrock: {
-        Region: {
-          Title: "AWS Region",
-          SubTitle: "The AWS region where Bedrock service is located",
-          Placeholder: "us-east-1",
-        },
-        AccessKey: {
-          Title: "AWS Access Key ID",
-          SubTitle: "Your AWS access key ID for Bedrock service",
-          Placeholder: "AKIA...",
-        },
-        SecretKey: {
-          Title: "AWS Secret Access Key",
-          SubTitle: "Your AWS secret access key for Bedrock service",
-          Placeholder: "****",
-        },
-        SessionToken: {
-          Title: "AWS Session Token (Optional)",
-          SubTitle: "Your AWS session token if using temporary credentials",
-          Placeholder: "Optional session token",
-        },
-        Endpoint: {
-          Title: "AWS Bedrock Endpoint",
-          SubTitle: "Custom endpoint for AWS Bedrock API. Default: ",
-        },
-      },
-
-      // ... (rest of the code remains the same)
-
       Baidu: {
         ApiKey: {
           Title: "Baidu API Key",
