@@ -4,6 +4,7 @@ import {
   StoreKey,
   ApiPath,
   OPENAI_BASE_URL,
+  BEDROCK_BASE_URL,
   ANTHROPIC_BASE_URL,
   GEMINI_BASE_URL,
   BAIDU_BASE_URL,
@@ -14,13 +15,15 @@ import {
   STABILITY_BASE_URL,
   IFLYTEK_BASE_URL,
   XAI_BASE_URL,
-  BEDROCK_BASE_URL,
+  CHATGLM_BASE_URL,
 } from "../constant";
 import { getHeaders } from "../client/api";
 import { getClientConfig } from "../config/client";
 import { createPersistStore } from "../utils/store";
 import { ensure } from "../utils/clone";
 import { DEFAULT_CONFIG } from "./config";
+import { getModelProvider } from "../utils/model";
+import { encrypt, decrypt } from "../utils/encryption";
 
 let fetchState = 0; // 0 not fetch, 1 fetching, 2 done
 
@@ -28,36 +31,45 @@ const isApp = getClientConfig()?.buildMode === "export";
 
 const DEFAULT_OPENAI_URL = isApp ? OPENAI_BASE_URL : ApiPath.OpenAI;
 const DEFAULT_BEDROCK_URL = isApp ? BEDROCK_BASE_URL : ApiPath.Bedrock;
+
 const DEFAULT_GOOGLE_URL = isApp ? GEMINI_BASE_URL : ApiPath.Google;
+
 const DEFAULT_ANTHROPIC_URL = isApp ? ANTHROPIC_BASE_URL : ApiPath.Anthropic;
+
 const DEFAULT_BAIDU_URL = isApp ? BAIDU_BASE_URL : ApiPath.Baidu;
+
 const DEFAULT_BYTEDANCE_URL = isApp ? BYTEDANCE_BASE_URL : ApiPath.ByteDance;
+
 const DEFAULT_ALIBABA_URL = isApp ? ALIBABA_BASE_URL : ApiPath.Alibaba;
+
 const DEFAULT_TENCENT_URL = isApp ? TENCENT_BASE_URL : ApiPath.Tencent;
+
 const DEFAULT_MOONSHOT_URL = isApp ? MOONSHOT_BASE_URL : ApiPath.Moonshot;
+
 const DEFAULT_STABILITY_URL = isApp ? STABILITY_BASE_URL : ApiPath.Stability;
+
 const DEFAULT_IFLYTEK_URL = isApp ? IFLYTEK_BASE_URL : ApiPath.Iflytek;
+
 const DEFAULT_XAI_URL = isApp ? XAI_BASE_URL : ApiPath.XAI;
+
+const DEFAULT_CHATGLM_URL = isApp ? CHATGLM_BASE_URL : ApiPath.ChatGLM;
 
 const DEFAULT_ACCESS_STATE = {
   accessCode: "",
   useCustomConfig: false,
 
-  provider: ServiceProvider.Bedrock,
+  provider: ServiceProvider.OpenAI,
 
   // openai
   openaiUrl: DEFAULT_OPENAI_URL,
   openaiApiKey: "",
 
   // bedrock
-  bedrockUrl: DEFAULT_BEDROCK_URL,
-  bedrockApiKey: "",
   awsRegion: "",
-  awsAccessKeyId: "",
-  awsSecretAccessKey: "",
+  awsAccessKey: "",
+  awsSecretKey: "",
   awsSessionToken: "",
   awsCognitoUser: false,
-  awsInferenceProfile: "", // Added inference profile field
 
   // azure
   azureUrl: "",
@@ -110,6 +122,10 @@ const DEFAULT_ACCESS_STATE = {
   xaiUrl: DEFAULT_XAI_URL,
   xaiApiKey: "",
 
+  // chatglm
+  chatglmUrl: DEFAULT_CHATGLM_URL,
+  chatglmApiKey: "",
+
   // server config
   needCode: true,
   hideUserApiKey: false,
@@ -122,6 +138,9 @@ const DEFAULT_ACCESS_STATE = {
   // tts config
   edgeTTSVoiceName: "zh-CN-YunxiNeural",
 };
+
+type AccessState = typeof DEFAULT_ACCESS_STATE;
+type BedrockCredentialKey = "awsAccessKey" | "awsSecretKey" | "awsSessionToken";
 
 export const useAccessStore = createPersistStore(
   { ...DEFAULT_ACCESS_STATE },
@@ -144,11 +163,43 @@ export const useAccessStore = createPersistStore(
     },
 
     isValidBedrock() {
-      return ensure(get(), [
-        "awsAccessKeyId",
-        "awsSecretAccessKey",
-        "awsRegion",
-      ]);
+      const state = get();
+      return (
+        ensure(state, ["awsAccessKey", "awsSecretKey", "awsRegion"]) &&
+        this.validateAwsCredentials(
+          this.getDecryptedAwsCredential("awsAccessKey"),
+          this.getDecryptedAwsCredential("awsSecretKey"),
+          state.awsRegion,
+        )
+      );
+    },
+
+    validateAwsCredentials(
+      accessKey: string,
+      secretKey: string,
+      region: string,
+    ) {
+      // Comprehensive AWS credential validation
+      const accessKeyRegex = /^(AKIA|A3T|ASIA)[A-Z0-9]{16}$/;
+      const regionRegex = /^[a-z]{2}-[a-z]+-\d+$/;
+
+      return (
+        accessKeyRegex.test(accessKey) && // Validate access key format
+        secretKey.length === 40 && // Validate secret key length
+        regionRegex.test(region) && // Validate region format
+        accessKey !== "" &&
+        secretKey !== "" &&
+        region !== ""
+      );
+    },
+
+    setEncryptedAwsCredential(key: BedrockCredentialKey, value: string) {
+      set({ [key]: encrypt(value) });
+    },
+
+    getDecryptedAwsCredential(key: BedrockCredentialKey): string {
+      const encryptedValue = get()[key];
+      return encryptedValue ? decrypt(encryptedValue) : "";
     },
 
     isValidAzure() {
@@ -190,6 +241,10 @@ export const useAccessStore = createPersistStore(
       return ensure(get(), ["xaiApiKey"]);
     },
 
+    isValidChatGLM() {
+      return ensure(get(), ["chatglmApiKey"]);
+    },
+
     isAuthorized() {
       this.fetch();
 
@@ -207,10 +262,12 @@ export const useAccessStore = createPersistStore(
         this.isValidMoonshot() ||
         this.isValidIflytek() ||
         this.isValidXAI() ||
+        this.isValidChatGLM() ||
         !this.enabledAccessControl() ||
         (this.enabledAccessControl() && ensure(get(), ["accessCode"]))
       );
     },
+
     fetch() {
       if (fetchState > 0 || getClientConfig()?.buildMode === "export") return;
       fetchState = 1;
@@ -225,16 +282,36 @@ export const useAccessStore = createPersistStore(
         .then((res) => {
           const defaultModel = res.defaultModel ?? "";
           if (defaultModel !== "") {
-            const [model, providerName] = defaultModel.split("@");
+            const [model, providerName] = getModelProvider(defaultModel);
             DEFAULT_CONFIG.modelConfig.model = model;
-            DEFAULT_CONFIG.modelConfig.providerName = providerName;
+            DEFAULT_CONFIG.modelConfig.providerName = providerName as any;
           }
 
           return res;
         })
         .then((res: DangerConfig) => {
-          console.log("[Config] got config from server", res);
+          console.log("[Config] received DangerConfig server configuration");
           set(() => ({ ...res }));
+          return res;
+        })
+        .then((res: Partial<AccessState>) => {
+          console.log("[Config] received AccessState server configuration");
+          // Encrypt Bedrock-related sensitive data before storing
+          const encryptedRes = { ...res };
+          const keysToEncrypt: BedrockCredentialKey[] = [
+            "awsAccessKey",
+            "awsSecretKey",
+            "awsSessionToken",
+          ];
+
+          keysToEncrypt.forEach((key) => {
+            const value = encryptedRes[key];
+            if (value) {
+              (encryptedRes[key] as string) = encrypt(value as string);
+            }
+          });
+
+          set(() => ({ ...encryptedRes }));
         })
         .catch(() => {
           console.error("[Config] failed to fetch config");

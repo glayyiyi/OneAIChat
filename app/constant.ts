@@ -12,9 +12,9 @@ export const RUNTIME_CONFIG_DOM = "danger-runtime-config";
 export const STABILITY_BASE_URL = "https://api.stability.ai";
 
 export const OPENAI_BASE_URL = "https://api.openai.com";
-export const ANTHROPIC_BASE_URL = "https://api.anthropic.com";
 export const BEDROCK_BASE_URL =
-  "https://bedrock-runtime.us-east-1.amazonaws.com";
+  "https://bedrock-runtime.us-west-2.amazonaws.com";
+export const ANTHROPIC_BASE_URL = "https://api.anthropic.com";
 
 export const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/";
 
@@ -31,6 +31,8 @@ export const MOONSHOT_BASE_URL = "https://api.moonshot.cn";
 export const IFLYTEK_BASE_URL = "https://spark-api-open.xf-yun.com";
 
 export const XAI_BASE_URL = "https://api.x.ai";
+
+export const CHATGLM_BASE_URL = "https://open.bigmodel.cn";
 
 export const CACHE_URL_PREFIX = "/api/cache";
 export const UPLOAD_URL = `${CACHE_URL_PREFIX}/upload`;
@@ -51,11 +53,11 @@ export enum Path {
 
 export enum ApiPath {
   Cors = "",
+  Bedrock = "/api/bedrock",
   Azure = "/api/azure",
   OpenAI = "/api/openai",
   Anthropic = "/api/anthropic",
   Google = "/api/google",
-  Bedrock = "/api/bedrock",
   Baidu = "/api/baidu",
   ByteDance = "/api/bytedance",
   Alibaba = "/api/alibaba",
@@ -65,6 +67,7 @@ export enum ApiPath {
   Stability = "/api/stability",
   Artifacts = "/api/artifacts",
   XAI = "/api/xai",
+  ChatGLM = "/api/chatglm",
 }
 
 export enum SlotID {
@@ -106,7 +109,6 @@ export const REQUEST_TIMEOUT_MS = 60000;
 export const EXPORT_MESSAGE_CLASS_NAME = "export-markdown";
 
 export enum ServiceProvider {
-  Bedrock = "Bedrock",
   OpenAI = "OpenAI",
   Azure = "Azure",
   Google = "Google",
@@ -119,8 +121,12 @@ export enum ServiceProvider {
   Stability = "Stability",
   Iflytek = "Iflytek",
   XAI = "XAI",
+  ChatGLM = "ChatGLM",
+  Bedrock = "Bedrock",
 }
 
+// Google API safety settings, see https://ai.google.dev/gemini-api/docs/safety-settings
+// BLOCK_NONE will not block any content, and BLOCK_ONLY_HIGH will block only high-risk content.
 export enum GoogleSafetySettingsThreshold {
   BLOCK_NONE = "BLOCK_NONE",
   BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH",
@@ -133,7 +139,6 @@ export enum ModelProvider {
   GPT = "GPT",
   GeminiPro = "GeminiPro",
   Claude = "Claude",
-  Bedrock = "Bedrock",
   Ernie = "Ernie",
   Doubao = "Doubao",
   Qwen = "Qwen",
@@ -141,6 +146,8 @@ export enum ModelProvider {
   Moonshot = "Moonshot",
   Iflytek = "Iflytek",
   XAI = "XAI",
+  ChatGLM = "ChatGLM",
+  Bedrock = "Bedrock",
 }
 
 export const Stability = {
@@ -155,11 +162,6 @@ export const Anthropic = {
   Vision: "2023-06-01",
 };
 
-export const Bedrock = {
-  ExampleEndpoint: BEDROCK_BASE_URL,
-  ChatPath: "v1/chat/completions",
-};
-
 export const OpenaiPath = {
   ChatPath: "v1/chat/completions",
   SpeechPath: "v1/audio/speech",
@@ -172,6 +174,7 @@ export const OpenaiPath = {
 export const Azure = {
   ChatPath: (deployName: string, apiVersion: string) =>
     `deployments/${deployName}/chat/completions?api-version=${apiVersion}`,
+  // https://<your_resource_name>.openai.azure.com/openai/deployments/<your_deployment_name>/images/generations?api-version=<api_version>
   ImagePath: (deployName: string, apiVersion: string) =>
     `deployments/${deployName}/images/generations?api-version=${apiVersion}`,
   ExampleEndpoint: "https://{resource-url}/openai",
@@ -232,8 +235,24 @@ export const XAI = {
   ChatPath: "v1/chat/completions",
 };
 
-export const DEFAULT_INPUT_TEMPLATE = `{{input}}`;
+export const ChatGLM = {
+  ExampleEndpoint: CHATGLM_BASE_URL,
+  ChatPath: "api/paas/v4/chat/completions",
+};
 
+export const Bedrock = {
+  ChatPath: "converse",
+};
+
+export const DEFAULT_INPUT_TEMPLATE = `{{input}}`; // input / time / model / lang
+// export const DEFAULT_SYSTEM_TEMPLATE = `
+// You are ChatGPT, a large language model trained by {{ServiceProvider}}.
+// Knowledge cutoff: {{cutoff}}
+// Current model: {{model}}
+// Current time: {{time}}
+// Latex inline: $x^2$
+// Latex block: $$e=mc^2$$
+// `;
 export const DEFAULT_SYSTEM_TEMPLATE = `
 You are ChatGPT, a large language model trained by {{ServiceProvider}}.
 Knowledge cutoff: {{cutoff}}
@@ -243,7 +262,7 @@ Latex inline: \\(x^2\\)
 Latex block: $$e=mc^2$$
 `;
 
-export const SUMMARIZE_MODEL = "anthropic.claude-3-haiku-20240307-v1:0";
+export const SUMMARIZE_MODEL = "gpt-4o-mini";
 export const GEMINI_SUMMARIZE_MODEL = "gemini-pro";
 
 export const KnowledgeCutOffDate: Record<string, string> = {
@@ -260,10 +279,10 @@ export const KnowledgeCutOffDate: Record<string, string> = {
   "gpt-4-vision-preview": "2023-04",
   "o1-mini": "2023-10",
   "o1-preview": "2023-10",
+  // After improvements,
+  // it's now easier to add "KnowledgeCutOffDate" instead of stupid hardcoding it, as was done previously.
   "gemini-pro": "2023-12",
   "gemini-pro-vision": "2023-12",
-  "anthropic.claude-v2": "2023-12",
-  "anthropic.claude-v1": "2023-12",
 };
 
 export const DEFAULT_TTS_ENGINE = "OpenAI-TTS";
@@ -304,6 +323,22 @@ const openaiModels = [
   "o1-preview",
 ];
 
+const bedrockModels = [
+  // Claude Models
+  "anthropic.claude-3-haiku-20240307-v1:0",
+  "anthropic.claude-3-5-haiku-20241022-v1:0",
+  "anthropic.claude-3-sonnet-20240229-v1:0",
+  "anthropic.claude-3-5-sonnet-20241022-v2:0",
+  "anthropic.claude-3-opus-20240229-v1:0",
+
+  // Meta Llama Models
+  "us.meta.llama3-2-11b-instruct-v1:0",
+  "us.meta.llama3-2-90b-instruct-v1:0",
+  //Mistral
+  "mistral.mistral-large-2402-v1:0",
+  "mistral.mistral-large-2407-v1:0",
+];
+
 const googleModels = [
   "gemini-1.0-pro",
   "gemini-1.5-pro-latest",
@@ -315,30 +350,14 @@ const anthropicModels = [
   "claude-instant-1.2",
   "claude-2.0",
   "claude-2.1",
-  "claude-3-sonnet",
-  "claude-3-opus",
-  "claude-3-haiku",
-  "claude-3-5-sonnet",
-];
-
-const bedrockModels = [
-  // Claude Models
-  "anthropic.claude-3-haiku-20240307-v1:0",
-  "anthropic.claude-3-sonnet-20240229-v1:0",
-  "anthropic.claude-3-opus-20240229-v1:0",
-  "anthropic.claude-3-5-sonnet-20240620-v1:0",
-  "anthropic.claude-3-5-sonnet-20241022-v2:0",
-  // Amazon Titan Models
-  "amazon.titan-text-express-v1",
-  "amazon.titan-text-lite-v1",
-  // Meta Llama Models
-  "meta.llama3-2-1b-instruct-v1:0",
-  "meta.llama3-2-3b-instruct-v1:0",
-  "meta.llama3-2-11b-instruct-v1:0",
-  //Mistral
-  "mistral.mistral-7b-instruct-v0:2",
-  "mistral.mixtral-8x7b-instruct-v0:1",
-  "mistral.mistral-large-2407-v1:0",
+  "claude-3-sonnet-20240229",
+  "claude-3-opus-20240229",
+  "claude-3-opus-latest",
+  "claude-3-haiku-20240307",
+  "claude-3-5-sonnet-20240620",
+  "claude-3-5-sonnet-20241022",
+  "claude-3-5-sonnet-latest",
+  "claude-3-5-haiku-latest",
 ];
 
 const baiduModels = [
@@ -396,19 +415,19 @@ const iflytekModels = [
 
 const xAIModes = ["grok-beta"];
 
+const chatglmModels = [
+  "glm-4-plus",
+  "glm-4-0520",
+  "glm-4",
+  "glm-4-air",
+  "glm-4-airx",
+  "glm-4-long",
+  "glm-4-flashx",
+  "glm-4-flash",
+];
+
 let seq = 1000; // 内置的模型序号生成器从1000开始
 export const DEFAULT_MODELS = [
-  ...bedrockModels.map((name) => ({
-    name,
-    available: true,
-    sorted: seq++,
-    provider: {
-      id: "bedrock",
-      providerName: "Bedrock",
-      providerType: "bedrock",
-      sorted: 1,
-    },
-  })),
   ...openaiModels.map((name) => ({
     name,
     available: true,
@@ -417,7 +436,7 @@ export const DEFAULT_MODELS = [
       id: "openai",
       providerName: "OpenAI",
       providerType: "openai",
-      sorted: 2, // 这里是固定的，确保顺序与之前内置的版本一致
+      sorted: 1, // 这里是固定的，确保顺序与之前内置的版本一致
     },
   })),
   ...openaiModels.map((name) => ({
@@ -428,7 +447,7 @@ export const DEFAULT_MODELS = [
       id: "azure",
       providerName: "Azure",
       providerType: "azure",
-      sorted: 3,
+      sorted: 2,
     },
   })),
   ...googleModels.map((name) => ({
@@ -439,7 +458,7 @@ export const DEFAULT_MODELS = [
       id: "google",
       providerName: "Google",
       providerType: "google",
-      sorted: 4,
+      sorted: 3,
     },
   })),
   ...anthropicModels.map((name) => ({
@@ -450,7 +469,7 @@ export const DEFAULT_MODELS = [
       id: "anthropic",
       providerName: "Anthropic",
       providerType: "anthropic",
-      sorted: 5,
+      sorted: 4,
     },
   })),
   ...baiduModels.map((name) => ({
@@ -461,7 +480,7 @@ export const DEFAULT_MODELS = [
       id: "baidu",
       providerName: "Baidu",
       providerType: "baidu",
-      sorted: 6,
+      sorted: 5,
     },
   })),
   ...bytedanceModels.map((name) => ({
@@ -472,7 +491,7 @@ export const DEFAULT_MODELS = [
       id: "bytedance",
       providerName: "ByteDance",
       providerType: "bytedance",
-      sorted: 7,
+      sorted: 6,
     },
   })),
   ...alibabaModes.map((name) => ({
@@ -483,7 +502,7 @@ export const DEFAULT_MODELS = [
       id: "alibaba",
       providerName: "Alibaba",
       providerType: "alibaba",
-      sorted: 8,
+      sorted: 7,
     },
   })),
   ...tencentModels.map((name) => ({
@@ -494,7 +513,7 @@ export const DEFAULT_MODELS = [
       id: "tencent",
       providerName: "Tencent",
       providerType: "tencent",
-      sorted: 9,
+      sorted: 8,
     },
   })),
   ...moonshotModes.map((name) => ({
@@ -505,7 +524,7 @@ export const DEFAULT_MODELS = [
       id: "moonshot",
       providerName: "Moonshot",
       providerType: "moonshot",
-      sorted: 10,
+      sorted: 9,
     },
   })),
   ...iflytekModels.map((name) => ({
@@ -516,7 +535,7 @@ export const DEFAULT_MODELS = [
       id: "iflytek",
       providerName: "Iflytek",
       providerType: "iflytek",
-      sorted: 11,
+      sorted: 10,
     },
   })),
   ...xAIModes.map((name) => ({
@@ -527,7 +546,31 @@ export const DEFAULT_MODELS = [
       id: "xai",
       providerName: "XAI",
       providerType: "xai",
+      sorted: 11,
+    },
+  })),
+
+  ...chatglmModels.map((name) => ({
+    name,
+    available: true,
+    sorted: seq++,
+    provider: {
+      id: "chatglm",
+      providerName: "ChatGLM",
+      providerType: "chatglm",
       sorted: 12,
+    },
+  })),
+
+  ...bedrockModels.map((name) => ({
+    name,
+    available: true,
+    sorted: seq++,
+    provider: {
+      id: "bedrock",
+      providerName: "Bedrock",
+      providerType: "bedrock",
+      sorted: 13,
     },
   })),
 ] as const;

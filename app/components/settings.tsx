@@ -72,6 +72,7 @@ import {
   Stability,
   Iflytek,
   SAAS_CHAT_URL,
+  ChatGLM,
 } from "../constant";
 import { Prompt, SearchService, usePromptStore } from "../store/prompt";
 import { ErrorBoundary } from "./error";
@@ -963,7 +964,6 @@ export function Settings() {
       </ListItem>
     </>
   );
-
   const bedrockConfigComponent = accessStore.provider ===
     ServiceProvider.Bedrock && (
     <>
@@ -975,7 +975,7 @@ export function Settings() {
           aria-label={Locale.Settings.Access.Bedrock.Region.Title}
           type="text"
           value={accessStore.awsRegion}
-          placeholder="us-east-1"
+          placeholder="us-west-2"
           onChange={(e) =>
             accessStore.update(
               (access) => (access.awsRegion = e.currentTarget.value),
@@ -989,14 +989,15 @@ export function Settings() {
       >
         <PasswordInput
           aria-label={Locale.Settings.Access.Bedrock.AccessKey.Title}
-          value={accessStore.awsAccessKeyId}
+          value={accessStore.awsAccessKey}
           type="text"
           placeholder={Locale.Settings.Access.Bedrock.AccessKey.Placeholder}
           onChange={(e) => {
             accessStore.update(
-              (access) => (access.awsAccessKeyId = e.currentTarget.value),
+              (access) => (access.awsAccessKey = e.currentTarget.value),
             );
           }}
+          maskWhenShow={true}
         />
       </ListItem>
       <ListItem
@@ -1005,14 +1006,15 @@ export function Settings() {
       >
         <PasswordInput
           aria-label={Locale.Settings.Access.Bedrock.SecretKey.Title}
-          value={accessStore.awsSecretAccessKey}
+          value={accessStore.awsSecretKey}
           type="text"
           placeholder={Locale.Settings.Access.Bedrock.SecretKey.Placeholder}
           onChange={(e) => {
             accessStore.update(
-              (access) => (access.awsSecretAccessKey = e.currentTarget.value),
+              (access) => (access.awsSecretKey = e.currentTarget.value),
             );
           }}
+          maskWhenShow={true}
         />
       </ListItem>
       <ListItem
@@ -1029,6 +1031,7 @@ export function Settings() {
               (access) => (access.awsSessionToken = e.currentTarget.value),
             );
           }}
+          maskWhenShow={true}
         />
       </ListItem>
     </>
@@ -1303,6 +1306,47 @@ export function Settings() {
     </>
   );
 
+  const chatglmConfigComponent = accessStore.provider ===
+    ServiceProvider.ChatGLM && (
+    <>
+      <ListItem
+        title={Locale.Settings.Access.ChatGLM.Endpoint.Title}
+        subTitle={
+          Locale.Settings.Access.ChatGLM.Endpoint.SubTitle +
+          ChatGLM.ExampleEndpoint
+        }
+      >
+        <input
+          aria-label={Locale.Settings.Access.ChatGLM.Endpoint.Title}
+          type="text"
+          value={accessStore.chatglmUrl}
+          placeholder={ChatGLM.ExampleEndpoint}
+          onChange={(e) =>
+            accessStore.update(
+              (access) => (access.chatglmUrl = e.currentTarget.value),
+            )
+          }
+        ></input>
+      </ListItem>
+      <ListItem
+        title={Locale.Settings.Access.ChatGLM.ApiKey.Title}
+        subTitle={Locale.Settings.Access.ChatGLM.ApiKey.SubTitle}
+      >
+        <PasswordInput
+          aria-label={Locale.Settings.Access.ChatGLM.ApiKey.Title}
+          value={accessStore.chatglmApiKey}
+          type="text"
+          placeholder={Locale.Settings.Access.ChatGLM.ApiKey.Placeholder}
+          onChange={(e) => {
+            accessStore.update(
+              (access) => (access.chatglmApiKey = e.currentTarget.value),
+            );
+          }}
+        />
+      </ListItem>
+    </>
+  );
+
   const stabilityConfigComponent = accessStore.provider ===
     ServiceProvider.Stability && (
     <>
@@ -1425,7 +1469,6 @@ export function Settings() {
           </div>
         </div>
       </div>
-
       <div className={styles["settings"]}>
         <List>
           <ListItem title={Locale.Settings.Avatar}>
@@ -1752,39 +1795,66 @@ export function Settings() {
                   </ListItem>
 
                   {openAIConfigComponent}
+                  {bedrockConfigComponent}
                   {azureConfigComponent}
                   {googleConfigComponent}
                   {anthropicConfigComponent}
-                  {bedrockConfigComponent}
                   {baiduConfigComponent}
-                  {tencentConfigComponent}
                   {byteDanceConfigComponent}
                   {alibabaConfigComponent}
+                  {tencentConfigComponent}
                   {moonshotConfigComponent}
-                  {XAIConfigComponent}
                   {stabilityConfigComponent}
                   {lflytekConfigComponent}
-
-                  <ListItem
-                    title={Locale.Settings.Access.CustomModel.Title}
-                    subTitle={Locale.Settings.Access.CustomModel.SubTitle}
-                  >
-                    <input
-                      type="text"
-                      value={config.customModels}
-                      placeholder="model1,model2,model3"
-                      onChange={(e) =>
-                        config.update(
-                          (config) =>
-                            (config.customModels = e.currentTarget.value),
-                        )
-                      }
-                    ></input>
-                  </ListItem>
+                  {XAIConfigComponent}
+                  {chatglmConfigComponent}
                 </>
               )}
             </>
           )}
+
+          {!shouldHideBalanceQuery && !clientConfig?.isApp ? (
+            <ListItem
+              title={Locale.Settings.Usage.Title}
+              subTitle={
+                showUsage
+                  ? loadingUsage
+                    ? Locale.Settings.Usage.IsChecking
+                    : Locale.Settings.Usage.SubTitle(
+                        usage?.used ?? "[?]",
+                        usage?.subscription ?? "[?]",
+                      )
+                  : Locale.Settings.Usage.NoAccess
+              }
+            >
+              {!showUsage || loadingUsage ? (
+                <div />
+              ) : (
+                <IconButton
+                  icon={<ResetIcon></ResetIcon>}
+                  text={Locale.Settings.Usage.Check}
+                  onClick={() => checkUsage(true)}
+                />
+              )}
+            </ListItem>
+          ) : null}
+
+          <ListItem
+            title={Locale.Settings.Access.CustomModel.Title}
+            subTitle={Locale.Settings.Access.CustomModel.SubTitle}
+          >
+            <input
+              aria-label={Locale.Settings.Access.CustomModel.Title}
+              type="text"
+              value={config.customModels}
+              placeholder="model1,model2,model3"
+              onChange={(e) =>
+                config.update(
+                  (config) => (config.customModels = e.currentTarget.value),
+                )
+              }
+            ></input>
+          </ListItem>
         </List>
 
         <List>

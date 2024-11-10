@@ -12,6 +12,11 @@ declare global {
       BASE_URL?: string;
       OPENAI_ORG_ID?: string; // openai only
 
+      // bedrock only
+      BEDROCK_REGION?: string;
+      BEDROCK_API_KEY?: string;
+      BEDROCK_API_SECRET?: string;
+
       VERCEL?: string;
       BUILD_MODE?: "standalone" | "export";
       BUILD_APP?: string; // is building desktop app
@@ -75,9 +80,9 @@ declare global {
       XAI_URL?: string;
       XAI_API_KEY?: string;
 
-      // bedrock only
-      BEDROCK_URL?: string;
-      BEDROCK_API_KEY?: string;
+      // chatglm only
+      CHATGLM_URL?: string;
+      CHATGLM_API_KEY?: string;
 
       // custom template for preprocessing user input
       DEFAULT_INPUT_TEMPLATE?: string;
@@ -143,7 +148,7 @@ export const getServerSideConfig = () => {
   }
 
   const isStability = !!process.env.STABILITY_API_KEY;
-
+  const isBedrock = !!process.env.BEDROCK_API_KEY;
   const isAzure = !!process.env.AZURE_URL;
   const isGoogle = !!process.env.GOOGLE_API_KEY;
   const isAnthropic = !!process.env.ANTHROPIC_API_KEY;
@@ -155,7 +160,14 @@ export const getServerSideConfig = () => {
   const isMoonshot = !!process.env.MOONSHOT_API_KEY;
   const isIflytek = !!process.env.IFLYTEK_API_KEY;
   const isXAI = !!process.env.XAI_API_KEY;
-  const isBedrock = !!process.env.BEDROCK_API_KEY;
+  const isChatGLM = !!process.env.CHATGLM_API_KEY;
+  // const apiKeyEnvVar = process.env.OPENAI_API_KEY ?? "";
+  // const apiKeys = apiKeyEnvVar.split(",").map((v) => v.trim());
+  // const randomIndex = Math.floor(Math.random() * apiKeys.length);
+  // const apiKey = apiKeys[randomIndex];
+  // console.log(
+  //   `[Server Config] using ${randomIndex + 1} of ${apiKeys.length} api key`,
+  // );
 
   const allowedWebDavEndpoints = (
     process.env.WHITE_WEBDAV_ENDPOINTS ?? ""
@@ -165,6 +177,11 @@ export const getServerSideConfig = () => {
     baseUrl: process.env.BASE_URL,
     apiKey: getApiKey(process.env.OPENAI_API_KEY),
     openaiOrgId: process.env.OPENAI_ORG_ID,
+
+    isBedrock,
+    awsRegion: process.env.AWS_REGION,
+    awsAccessKey: process.env.AWS_ACCESS_KEY,
+    awsSecretKey: process.env.AWS_SECRET_KEY,
 
     isStability,
     stabilityUrl: process.env.STABILITY_URL,
@@ -215,9 +232,9 @@ export const getServerSideConfig = () => {
     xaiUrl: process.env.XAI_URL,
     xaiApiKey: getApiKey(process.env.XAI_API_KEY),
 
-    isBedrock,
-    bedrockUrl: process.env.BEDROCK_URL,
-    bedrockApiKey: getApiKey(process.env.BEDROCK_API_KEY),
+    isChatGLM,
+    chatglmUrl: process.env.CHATGLM_URL,
+    chatglmApiKey: getApiKey(process.env.CHATGLM_API_KEY),
 
     cloudflareAccountId: process.env.CLOUDFLARE_ACCOUNT_ID,
     cloudflareKVNamespaceId: process.env.CLOUDFLARE_KV_NAMESPACE_ID,
